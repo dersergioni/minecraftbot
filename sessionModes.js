@@ -4,5 +4,6 @@ module.exports = {
     AddType: 2,
     AddDescription: 3,
     SelectType: 4,
-    RequestDeleteMap: 5
+    RequestDeleteMap: 5,
+    RequestDeleteLocations: 6
 };

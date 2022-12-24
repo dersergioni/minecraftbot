@@ -7,13 +7,13 @@ class AddLocations {
     constructor(bot, sessionModes, sessionData) {
         this.bot = bot;
         this.modes = sessionModes;
-        this.datas = sessionData;
+        this.data = sessionData;
     }
 
     async promptPointStage(chatId, user) {
         this.modes.set(chatId, Modes.AddCoordinates);
         const mapId = await db.Map.findOne({where: {userId: user}});
-        this.datas.set(chatId, {mapId: mapId.dataValues.mapId});
+        this.data.set(chatId, {mapId: mapId.dataValues.mapId});
         return await this.bot.sendMessage(chatId, 'Ок, введи координаты как на экране через пробел:');
     }
 
@@ -27,7 +27,7 @@ class AddLocations {
                 points[index] = number;
             });
             if (points.length != 3) throw('');
-            const userData = this.datas.get(chatId);
+            const userData = this.data.get(chatId);
             userData.first = points[0];
             userData.center = points[1];
             userData.last = points[2];
@@ -41,7 +41,7 @@ class AddLocations {
     async promptDescStage(chatId, text) {
         try {
             this.modes.set(chatId, Modes.AddDescription);
-            const userData = this.datas.get(chatId);
+            const userData = this.data.get(chatId);
             userData.type = text;
             return await this.bot.sendMessage(chatId, `Отлично, это ${text}. И последнее, теперь описание (можно оставить пустым):`, emptyOptions);
         } catch (e) {
@@ -51,7 +51,7 @@ class AddLocations {
 
     async finalizeStage(chatId, user, text) {
         try {
-            const userData = this.datas.get(chatId);
+            const userData = this.data.get(chatId);
             if (text != 'empty') {
                 text = text.trim();
                 userData.desc = text.charAt(0).toUpperCase() + text.slice(1);

@@ -1,12 +1,13 @@
-const {requestTypeOfLocation, startOptions} = require('./tgReplyOptions');
+const {requestTypeOfLocation, startOptions, displayResultMenuOptions} = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
 
 class DisplayLocations {
 
-    constructor(bot, sessionModes) {
+    constructor(bot, sessionModes, sessionData) {
         this.bot = bot;
         this.modes = sessionModes;
+        this.data = sessionData;
     }
 
     async promptType(chatId) {
@@ -27,6 +28,7 @@ class DisplayLocations {
                 points = await db.Location.findAll({where: {type: type, mapId: mapId.dataValues.mapId}});
                 header += '<b>Все точки типа "' + type + '":</b>';
             }
+            this.data.set(chatId, {lastDisplayed: points});
             for (let i = 0; i < points.length; ++i) {
                 let line = '<pre>';
                 line += `${('   ' + (i + 1)).slice(-3)} `;
@@ -54,7 +56,7 @@ class DisplayLocations {
             }
             this.modes.set(chatId, Modes.Start);
             msg = header + '\n' + msg;
-            return await this.bot.sendMessage(chatId, msg, {parse_mode: 'html', ...startOptions});
+            return await this.bot.sendMessage(chatId, msg, {parse_mode: 'html', ...displayResultMenuOptions});
         } catch (e) {
             return await this.bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
         }

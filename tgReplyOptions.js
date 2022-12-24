@@ -6,7 +6,7 @@ module.exports = {
                 [{text: 'Добавить точку', callback_data: '/add'}],
                 [{text: 'Показать все точки', callback_data: '/all'}],
                 [{text: 'Показать только точки одного типа', callback_data: '/type'}],
-                [{text: 'Удалить карту и все локации на ней', callback_data: '/deletemap'}],
+                [{text: 'Удалить карту и все локации на ней', callback_data: '/deleteMap'}],
             ]
         })
     },
@@ -42,7 +42,7 @@ module.exports = {
     createMapOptions: {
         reply_markup: JSON.stringify({
             inline_keyboard: [
-                [{text: 'Создать карту', callback_data: '/createmap'}],
+                [{text: 'Создать карту', callback_data: '/createMap'}],
             ]
         })
     },
@@ -52,6 +52,23 @@ module.exports = {
             inline_keyboard: [
                 [{text: 'Да', callback_data: '/confirmMapDeletion'}],
                 [{text: 'Нет', callback_data: '/declineMapDeletion'}],
+            ]
+        })
+    },
+
+    displayResultMenuOptions: {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [{text: 'Удалить точки (указать далее)', callback_data: '/deleteLocation'}],
+                [{text: 'Главное меню', callback_data: '/start'}],
+            ]
+        })
+    },
+
+    requestDeleteLocationsOptions: {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [{text: 'Отменить', callback_data: '/start'}],
             ]
         })
     },
