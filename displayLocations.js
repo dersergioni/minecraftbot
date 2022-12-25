@@ -1,4 +1,4 @@
-const {requestTypeOfLocation, startOptions, displayResultMenuOptions} = require('./tgReplyOptions');
+const {requestTypeOfLocationOptions, startOptions, displayResultMenuOptions} = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
 
@@ -7,44 +7,44 @@ class DisplayLocations {
     constructor(bot, sessionModes, sessionData) {
         this.bot = bot;
         this.modes = sessionModes;
-        this.data = sessionData;
+        this.sessionData = sessionData;
     }
 
     async promptType(chatId) {
         this.modes.set(chatId, Modes.SelectType);
-        return await this.bot.sendMessage(chatId, `Выбери тип:`, requestTypeOfLocation);
+        return await this.bot.sendMessage(chatId, `Выбери тип:`, requestTypeOfLocationOptions);
     }
 
-    async showPoints(chatId, user, type) {
+    async showLocations(chatId, user, type) {
         try {
             const mapId = await db.Map.findOne({where: {userId: user}});
             let header = '';
             let msg = '';
-            let points;
+            let locations;
             if (type === undefined) {
-                points = await db.Location.findAll({where: {mapId: mapId.dataValues.mapId}});
+                locations = await db.Location.findAll({where: {mapId: mapId.dataValues.mapId}});
                 header += '<b>Все точки:</b>';
             } else {
-                points = await db.Location.findAll({where: {type: type, mapId: mapId.dataValues.mapId}});
+                locations = await db.Location.findAll({where: {type: type, mapId: mapId.dataValues.mapId}});
                 header += '<b>Все точки типа "' + type + '":</b>';
             }
-            this.data.set(chatId, {lastDisplayed: points});
-            for (let i = 0; i < points.length; ++i) {
+            this.sessionData.set(chatId, {lastDisplayed: locations});
+            for (let i = 0; i < locations.length; ++i) {
                 let line = '<pre>';
                 line += `${('   ' + (i + 1)).slice(-3)} `;
-                line += `[${('      ' + points[i].dataValues.first).slice(-6)}`;
-                line += `${('      ' + points[i].dataValues.center).slice(-6)}`;
-                line += `${('      ' + points[i].dataValues.last).slice(-6)}]`;
+                line += `[${('      ' + locations[i].dataValues.first).slice(-6)}`;
+                line += `${('      ' + locations[i].dataValues.center).slice(-6)}`;
+                line += `${('      ' + locations[i].dataValues.last).slice(-6)}]`;
                 if (type === undefined) {
-                    line += ` ${points[i].dataValues.type}`;
-                    if (points[i].dataValues.desc != '') {
-                        line += ` (${points[i].dataValues.desc})`;
+                    line += ` ${locations[i].dataValues.type}`;
+                    if (locations[i].dataValues.desc != '') {
+                        line += ` (${locations[i].dataValues.desc})`;
                     }
                 } else {
-                    if (points[i].dataValues.desc != '') {
-                        line += ` ${points[i].dataValues.desc}`;
+                    if (locations[i].dataValues.desc != '') {
+                        line += ` ${locations[i].dataValues.desc}`;
                     } else {
-                        line += ` ${points[i].dataValues.type}`;
+                        line += ` ${locations[i].dataValues.type}`;
                     }
                 }
                 line += '</pre>';

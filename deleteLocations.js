@@ -1,9 +1,4 @@
-const {
-    startOptions,
-    confirmMapDeletionOptions,
-    createMapOptions,
-    requestDeleteLocationsOptions
-} = require('./tgReplyOptions');
+const {startOptions, requestDeleteLocationsOptions} = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
 
@@ -12,7 +7,7 @@ class deleteLocations {
     constructor(bot, sessionModes, sessionData) {
         this.bot = bot;
         this.modes = sessionModes;
-        this.data = sessionData;
+        this.sessionData = sessionData;
     }
 
     async requestDeleteLocations(chatId) {
@@ -24,14 +19,14 @@ class deleteLocations {
         try {
             let numbersToDelete = data.split(' ');
             numbersToDelete.forEach((element, index) => {
-                let number = parseInt(element);
+                const number = parseInt(element);
                 if (isNaN(number))
                     throw('');
                 numbersToDelete[index] = number;
             });
-            let lastResult = this.data.get(chatId).lastDisplayed;
+            const lastResult = this.sessionData.get(chatId).lastDisplayed;
             for (const number of numbersToDelete) {
-                let indx = lastResult[number - 1].dataValues.id;
+                const indx = lastResult[number - 1].dataValues.id;
                 let res = await db.Location.findOne({where: {id: indx}});
                 await res.destroy();
             }

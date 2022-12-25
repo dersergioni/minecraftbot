@@ -1,6 +1,7 @@
 module.exports = {
 
     startOptions: {
+        disable_notification: true,
         reply_markup: JSON.stringify({
             inline_keyboard: [
                 [{text: 'Добавить точку', callback_data: '/add'}],
@@ -12,7 +13,21 @@ module.exports = {
         })
     },
 
-    requestTypeOfLocation: {
+    requestCoordinatesOptions: {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [{text: '1', callback_data: '1'}, {text: '2', callback_data: '2'}, {text: '3', callback_data: '3'}],
+                [{text: '4', callback_data: '4'}, {text: '5', callback_data: '5'}, {text: '6', callback_data: '6'}],
+                [{text: '7', callback_data: '7'}, {text: '8', callback_data: '8'}, {text: '9', callback_data: '9'}],
+                [{text: '\u232B', callback_data: '\u232B'}, {text: '0', callback_data: '0'}, {
+                    text: 'Далее',
+                    callback_data: 'Далее'
+                }]
+            ]
+        })
+    },
+
+    requestTypeOfLocationOptions: {
         reply_markup: JSON.stringify({
             inline_keyboard: [
                 [{text: 'Дом', callback_data: 'Дом'}, {text: 'Бункер', callback_data: 'Бункер'}, {
@@ -28,6 +43,27 @@ module.exports = {
                     callback_data: 'Дом ведьмы'
                 }, {text: 'Затонувший корабль', callback_data: 'Затонувший корабль'}],
                 [{text: 'Интересное место', callback_data: 'Интересное место'}],
+            ]
+        })
+    },
+
+    requestDestinationTypeOfLocation: {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [{text: 'Дом', callback_data: 'Дом'}, {text: 'Бункер', callback_data: 'Бункер'}, {
+                    text: 'Деревня',
+                    callback_data: 'Деревня'
+                }],
+                [{text: 'Корабль', callback_data: 'Корабль'}, {text: 'Клад', callback_data: 'Клад'}, {
+                    text: 'Портал',
+                    callback_data: 'Портал'
+                }],
+                [{text: 'Подводная крепость', callback_data: 'Подводная крепость'}, {
+                    text: 'Дом ведьмы',
+                    callback_data: 'Дом ведьмы'
+                }, {text: 'Затонувший корабль', callback_data: 'Затонувший корабль'}],
+                [{text: 'Интересное место', callback_data: 'Интересное место'}],
+                [{text: 'В любое место', callback_data: 'any'}],
             ]
         })
     },
@@ -70,35 +106,6 @@ module.exports = {
         reply_markup: JSON.stringify({
             inline_keyboard: [
                 [{text: 'Отменить', callback_data: '/start'}],
-            ]
-        })
-    },
-
-    EnterCurrentLocationOptions: {
-        reply_markup: JSON.stringify({
-            inline_keyboard: [
-                [{text: 'В главное меню', callback_data: '/start'}],
-            ]
-        })
-    },
-
-    requestDestinationTypeOfLocation: {
-        reply_markup: JSON.stringify({
-            inline_keyboard: [
-                [{text: 'Дом', callback_data: 'Дом'}, {text: 'Бункер', callback_data: 'Бункер'}, {
-                    text: 'Деревня',
-                    callback_data: 'Деревня'
-                }],
-                [{text: 'Корабль', callback_data: 'Корабль'}, {text: 'Клад', callback_data: 'Клад'}, {
-                    text: 'Портал',
-                    callback_data: 'Портал'
-                }],
-                [{text: 'Подводная крепость', callback_data: 'Подводная крепость'}, {
-                    text: 'Дом ведьмы',
-                    callback_data: 'Дом ведьмы'
-                }, {text: 'Затонувший корабль', callback_data: 'Затонувший корабль'}],
-                [{text: 'Интересное место', callback_data: 'Интересное место'}],
-                [{text: 'В любое место', callback_data: 'any'}],
             ]
         })
     },
