@@ -6,6 +6,7 @@ const {startOptions, createMapOptions} = require('./tgReplyOptions')
 const AddLocations = require('./addLocations');
 const DisplayLocations = require('./displayLocations');
 const DeleteLocations = require('./deleteLocations');
+const GoToLocations = require('./goToLocations');
 const EditAccountSettings = require('./editAccountSettings');
 
 const token = process.env.TG_MINECRAFT_TOKEN || undefined;
@@ -21,6 +22,7 @@ let sessionData = new Map();
 let addLocations = new AddLocations(bot, sessionModes, sessionData);
 let displayLocations = new DisplayLocations(bot, sessionModes, sessionData);
 let deleteLocations = new DeleteLocations(bot, sessionModes, sessionData);
+let goToLocations = new GoToLocations(bot, sessionModes, sessionData);
 let editAccountSettings = new EditAccountSettings(bot, sessionModes);
 
 try {
@@ -37,7 +39,10 @@ bot.setMyCommands([{command: '/start', description: 'Начальное прив
     command: '/type',
     description: 'Показать список точек определенного типа'
 },
-
+    {
+        command: '/go',
+        description: 'Показать ближайшую точку'
+    },
 ]);
 
 const initUser = async function () {
@@ -103,6 +108,14 @@ bot.on('message', async msg => {
 
         if (sessionModes.get(chatId) === Modes.RequestDeleteLocations) {
             return await deleteLocations.finalizeDeleteLocations(chatId, user, text);
+        }
+
+        if (text === '/go') {
+            return await goToLocations.promptCurrentPoint(chatId);
+        }
+
+        if (sessionModes.get(chatId) === Modes.EnterCurrentPoint) {
+            return await goToLocations.promptType(chatId, user, text);
         }
 
         return await bot.sendMessage(chatId, 'Нет такой команды', startOptions);
@@ -178,6 +191,15 @@ bot.on('callback_query', async msg => {
         if (sessionModes.get(chatId) === Modes.RequestDeleteLocations) {
             return await deleteLocations.finalizeDeleteLocations(chatId, user, data);
         }
+
+        if (data === '/go') {
+            return await goToLocations.promptCurrentPoint(chatId);
+        }
+
+        if (sessionModes.get(chatId) === Modes.SelectDestinationType) {
+            return await goToLocations.calculate(chatId, user, data);
+        }
+
 
         return await bot.sendMessage(chatId, 'Нет такой команды', startOptions);
 

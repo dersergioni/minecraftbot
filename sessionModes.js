@@ -5,5 +5,7 @@ module.exports = {
     AddDescription: 3,
     SelectType: 4,
     RequestDeleteMap: 5,
-    RequestDeleteLocations: 6
+    RequestDeleteLocations: 6,
+    EnterCurrentPoint: 7,
+    SelectDestinationType: 8,
 };
