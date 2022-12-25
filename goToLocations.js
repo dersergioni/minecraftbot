@@ -39,7 +39,7 @@ class GoToLocations {
     }
 
     getDistance(x, y) {
-        let compX = (y.first - x[0]) * (y.first - x[0]) ;
+        let compX = (y.first - x[0]) * (y.first - x[0]);
         let compY = (y.center - x[1]) * (y.center - x[1]);
         let compZ = (y.last - x[2]) * (y.last - x[2]);
         return Math.sqrt(compX + compY + compZ);
@@ -61,25 +61,24 @@ class GoToLocations {
 
             const currPosition = this.data.get(chatId);
             let currMinDistance = Number.MAX_VALUE;
-            let candidateLocation;
-            let candidateDesc;
+            let candidate;
             for (let i = 0; i < points.length; ++i) {
                 let distance = Math.abs(this.getDistance(currPosition, points[i].dataValues))
                 if (distance < currMinDistance) {
                     currMinDistance = distance;
-                    candidateLocation = points[i].dataValues;
-                    candidateDesc = points[i].dataValues.desc;
+                    candidate = points[i].dataValues;
                 }
             }
-            if (candidateLocation === undefined) {
+            if (candidate === undefined) {
                 msg = '<b>Нету</b>'
-            }
-            else{
-                msg += `[${('      ' + candidateLocation.first).slice(-6)}`;
-                msg += `${('      ' + candidateLocation.center).slice(-6)}`;
-                msg += `${('      ' + candidateLocation.last).slice(-6)}]`;
-                if (candidateDesc != "") {
-                    msg += ` - ${candidateDesc}`;
+            } else {
+                msg += `[${('      ' + candidate.first).slice(-6)}`;
+                msg += `${('      ' + candidate.center).slice(-6)}`;
+                msg += `${('      ' + candidate.last).slice(-6)}]`;
+                if (candidate.desc != "") {
+                    msg += ` - ${candidate.desc}`;
+                } else {
+                    msg += ` - ${candidate.type}`;
                 }
                 msg += '\n';
                 msg += `Расстояние: ${Math.floor(currMinDistance)}`

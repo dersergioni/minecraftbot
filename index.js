@@ -54,11 +54,10 @@ const startMenu = async function (msg, chatId, user) {
     // await initUser();
     sessionModes.set(msg.from.chatId, Modes.Start);
     const mapId = await db.Map.findOne({where: {userId: user}});
+    await bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/741/656/7416567c-bc94-36e7-8d4b-ecb706761efc/11.webp');
     if (!mapId) {
-        await bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/741/656/7416567c-bc94-36e7-8d4b-ecb706761efc/11.webp');
         return bot.sendMessage(chatId, `Добрый вечер я диспетчер, для начала нужно создать карту, ${msg.from.first_name}?`, createMapOptions);
     } else {
-        await bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/741/656/7416567c-bc94-36e7-8d4b-ecb706761efc/11.webp');
         return bot.sendMessage(chatId, `Добрый вечер я диспетчер, играем, ${msg.from.first_name}?`, startOptions);
     }
 }
@@ -199,7 +198,6 @@ bot.on('callback_query', async msg => {
         if (sessionModes.get(chatId) === Modes.SelectDestinationType) {
             return await goToLocations.calculate(chatId, user, data);
         }
-
 
         return await bot.sendMessage(chatId, 'Нет такой команды', startOptions);
 
