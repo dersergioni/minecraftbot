@@ -1,27 +1,29 @@
 const {startOptions, requestDestinationTypeOfLocation} = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
+const {getChatId, getDbUser, getInputData} = require("./helpers");
 
 class GoToLocations {
 
     constructor(bot, sessionModes, sessionData) {
         this.bot = bot;
-        this.modes = sessionModes;
+        this.sessionModes = sessionModes;
         this.sessionData = sessionData;
     }
 
-    async promptType(chatId) {
+    async promptType(msg) {
+        const chatId = getChatId(msg);
         try {
             const userData = this.sessionData.get(chatId);
             const number = parseInt(userData.entering);
             if (isNaN(number)) throw('');
             userData.locations.push(number);
             userData.entering = '';
-            if (userData.locations.length != 3) throw('');
-            this.modes.set(chatId, Modes.SelectDestinationType);
-            return await this.bot.sendMessage(chatId, `Выбери куда:`, requestDestinationTypeOfLocation);
+            if (userData.locations.length !== 3) throw('');
+            userData.originReq = await this.bot.sendMessage(chatId, `Выбери куда:`, requestDestinationTypeOfLocation);
+            this.sessionModes.set(chatId, Modes.SelectDestinationType);
         } catch (e) {
-            return await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+            await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
         }
     }
 
@@ -32,18 +34,25 @@ class GoToLocations {
         return Math.sqrt(compX + compY + compZ);
     }
 
-    async calculate(chatId, user, type) {
+    async calculate(msg) {
+        const chatId = getChatId(msg);
         try {
+            const user = getDbUser(msg);
+            const mode = this.sessionModes.get(chatId);
+            let type;
+            if (mode === Modes.SelectDestinationType) type = getInputData(msg);
+
+
             const mapId = await db.Map.findOne({where: {userId: user}});
-            let header = '';
-            let msg = '';
+            let replyHeader = '';
+            let replyBody = '';
             let locations;
             if (type === 'any') {
                 locations = await db.Location.findAll({where: {mapId: mapId.dataValues.mapId}});
-                header += '<b>Ближайшая точка:</b>';
+                replyHeader += '<b>Ближайшая точка:</b>';
             } else {
                 locations = await db.Location.findAll({where: {type: type, mapId: mapId.dataValues.mapId}});
-                header += '<b>Ближайшая точка типа "' + type + '":</b>';
+                replyHeader += '<b>Ближайшая точка типа "' + type + '":</b>';
             }
 
             const userData = this.sessionData.get(chatId);
@@ -57,24 +66,24 @@ class GoToLocations {
                 }
             }
             if (candidate === undefined) {
-                msg = '<b>Нету</b>'
+                replyBody = '<b>Нету</b>'
             } else {
-                msg += `[${('      ' + candidate.first).slice(-6)}`;
-                msg += `${('      ' + candidate.center).slice(-6)}`;
-                msg += `${('      ' + candidate.last).slice(-6)}]`;
-                if (candidate.desc != "") {
-                    msg += ` - ${candidate.desc}`;
+                replyBody += `[${('      ' + candidate.first).slice(-6)}`;
+                replyBody += `${('      ' + candidate.center).slice(-6)}`;
+                replyBody += `${('      ' + candidate.last).slice(-6)}]`;
+                if (candidate.desc !== '') {
+                    replyBody += ` - ${candidate.desc}`;
                 } else {
-                    msg += ` - ${candidate.type}`;
+                    replyBody += ` - ${candidate.type}`;
                 }
-                msg += '\n';
-                msg += `Расстояние: ${Math.floor(currMinDistance)}`
+                replyBody += '\n';
+                replyBody += `Расстояние: ${Math.floor(currMinDistance)}`
             }
-            this.modes.set(chatId, Modes.Start);
-            msg = header + '\n' + msg;
-            return await this.bot.sendMessage(chatId, msg, {parse_mode: 'html', ...startOptions});
+            replyBody = replyHeader + '\n' + replyBody;
+            userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...startOptions});
+            this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            return await this.bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
+            await this.bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
         }
     }
 

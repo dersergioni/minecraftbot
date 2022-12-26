@@ -1,48 +1,60 @@
 const {startOptions, confirmMapDeletionOptions, createMapOptions} = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
+const {getChatId, getDbUser} = require("./helpers");
 
 class EditAccountSettings {
 
-    constructor(bot, sessionModes) {
+    constructor(bot, sessionModes, sessionData) {
         this.bot = bot;
-        this.modes = sessionModes;
+        this.sessionModes = sessionModes;
+        this.sessionData = sessionData;
     }
 
-    async createMap(chatId, user) {
+    async createMap(msg) {
+        const chatId = getChatId(msg);
         try {
+            const user = getDbUser(msg);
+            const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (mapId) throw('');
-            const currMaxMapId = await db.Map.max('mapId');
+            let currMaxMapId = await db.Map.max('mapId');
+            if (isNaN(currMaxMapId)) currMaxMapId = 0;
             await db.Map.create({userId: user, mapId: currMaxMapId + 1});
-            return await this.bot.sendMessage(chatId, `Готово`, startOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, 'Готово', startOptions);
         } catch (e) {
-            return await this.bot.sendMessage(chatId, 'Ошибка на сервере');
+            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
         }
     }
 
-    async requestDeleteMap(chatId, user) {
+    async requestDeleteMap(msg) {
+        const chatId = getChatId(msg);
         try {
+            const user = getDbUser(msg);
+            const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) throw('');
-            this.modes.set(chatId, Modes.RequestDeleteMap);
-            return await this.bot.sendMessage(chatId, 'Вы уверены?', confirmMapDeletionOptions);
+            this.sessionModes.set(chatId, Modes.RequestDeleteMap);
+            userData.originReq = await this.bot.sendMessage(chatId, 'Вы уверены?', confirmMapDeletionOptions);
         } catch (e) {
-            return await this.bot.sendMessage(chatId, 'Ошибка на сервере');
+            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
         }
 
     }
 
-    async finalizeDeleteMap(chatId, user) {
+    async finalizeDeleteMap(msg) {
+        const chatId = getChatId(msg);
         try {
+            const user = getDbUser(msg);
+            const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) throw('');
             await db.Location.destroy({where: {mapId: mapId.dataValues.mapId}});
-            await db.Map.destroy({where: {id: mapId.dataValues.mapId}});
-            this.modes.set(chatId, Modes.Start);
-            return await this.bot.sendMessage(chatId, 'Готово', createMapOptions);
+            await db.Map.destroy({where: {mapId: mapId.dataValues.mapId}});
+            this.sessionModes.set(chatId, Modes.Start);
+            userData.originReq = await this.bot.sendMessage(chatId, 'Готово', createMapOptions);
         } catch (e) {
-            return await this.bot.sendMessage(chatId, 'Ошибка на сервере');
+            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
         }
     }
 

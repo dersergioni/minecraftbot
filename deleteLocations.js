@@ -1,6 +1,7 @@
 const {startOptions, requestDeleteLocationsOptions} = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
+const {getChatId, getInputData} = require("./helpers");
 
 class deleteLocations {
 
@@ -10,13 +11,22 @@ class deleteLocations {
         this.sessionData = sessionData;
     }
 
-    async requestDeleteLocations(chatId) {
-        this.modes.set(chatId, Modes.RequestDeleteLocations);
-        return await this.bot.sendMessage(chatId, 'Ок, введи номера точек которые надо удалить через пробел:', requestDeleteLocationsOptions);
+    async requestDeleteLocations(msg) {
+        let chatId = getChatId(msg);
+        try {
+            const userData = this.sessionData.get(chatId);
+            userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи номера точек которые надо удалить через пробел:', requestDeleteLocationsOptions);
+            this.modes.set(chatId, Modes.RequestDeleteLocations);
+        } catch (e) {
+            await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+        }
     }
 
-    async finalizeDeleteLocations(chatId, user, data) {
+    async finalizeDeleteLocations(msg) {
+        let chatId = getChatId(msg);
         try {
+            const userData = this.sessionData.get(chatId);
+            let data = getInputData(msg);
             let numbersToDelete = data.split(' ');
             numbersToDelete.forEach((element, index) => {
                 const number = parseInt(element);
@@ -31,9 +41,9 @@ class deleteLocations {
                 await res.destroy();
             }
             this.modes.set(chatId, Modes.Start);
-            return await this.bot.sendMessage(chatId, 'Готово', startOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, 'Готово', startOptions);
         } catch (e) {
-            return await this.bot.sendMessage(chatId, 'Ошибка на сервере');
+            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
         }
     }
 

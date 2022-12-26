@@ -1,32 +1,47 @@
 const {requestTypeOfLocationOptions, startOptions, displayResultMenuOptions} = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
+const {getChatId, getDbUser, getInputData} = require("./helpers");
+
 
 class DisplayLocations {
 
     constructor(bot, sessionModes, sessionData) {
         this.bot = bot;
-        this.modes = sessionModes;
+        this.sessionModes = sessionModes;
         this.sessionData = sessionData;
     }
 
-    async promptType(chatId) {
-        this.modes.set(chatId, Modes.SelectType);
-        return await this.bot.sendMessage(chatId, `Выбери тип:`, requestTypeOfLocationOptions);
+    async promptType(msg) {
+        const chatId = getChatId(msg);
+        try {
+            const userData = this.sessionData.get(chatId);
+            userData.originReq = await this.bot.sendMessage(chatId, `Выбери тип:`, requestTypeOfLocationOptions);
+            this.sessionModes.set(chatId, Modes.SelectType);
+        } catch (e) {
+            await this.bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
+        }
     }
 
-    async showLocations(chatId, user, type) {
+    async showLocations(msg) {
+        const chatId = getChatId(msg);
         try {
+            const user = getDbUser(msg);
+            const mode = this.sessionModes.get(chatId);
+            const userData = this.sessionData.get(chatId);
+            let type;
+            if (mode === Modes.SelectType) type = getInputData(msg);
+
             const mapId = await db.Map.findOne({where: {userId: user}});
-            let header = '';
-            let msg = '';
+            let replyHeader = '';
+            let replyBody = '';
             let locations;
             if (type === undefined) {
                 locations = await db.Location.findAll({where: {mapId: mapId.dataValues.mapId}});
-                header += '<b>Все точки:</b>';
+                replyHeader += '<b>Все точки:</b>';
             } else {
                 locations = await db.Location.findAll({where: {type: type, mapId: mapId.dataValues.mapId}});
-                header += '<b>Все точки типа "' + type + '":</b>';
+                replyHeader += '<b>Все точки типа "' + type + '":</b>';
             }
             this.sessionData.set(chatId, {lastDisplayed: locations});
             for (let i = 0; i < locations.length; ++i) {
@@ -37,11 +52,11 @@ class DisplayLocations {
                 line += `${('      ' + locations[i].dataValues.last).slice(-6)}]`;
                 if (type === undefined) {
                     line += ` ${locations[i].dataValues.type}`;
-                    if (locations[i].dataValues.desc != '') {
+                    if (locations[i].dataValues.desc !== '') {
                         line += ` (${locations[i].dataValues.desc})`;
                     }
                 } else {
-                    if (locations[i].dataValues.desc != '') {
+                    if (locations[i].dataValues.desc !== '') {
                         line += ` ${locations[i].dataValues.desc}`;
                     } else {
                         line += ` ${locations[i].dataValues.type}`;
@@ -49,16 +64,16 @@ class DisplayLocations {
                 }
                 line += '</pre>';
                 line += '\n';
-                msg += line;
+                replyBody += line;
             }
-            if (msg.length === 0) {
-                msg = '<b>Нету</b>'
+            if (replyBody.length === 0) {
+                replyBody = '<b>Нету</b>'
             }
-            this.modes.set(chatId, Modes.Start);
-            msg = header + '\n' + msg;
-            return await this.bot.sendMessage(chatId, msg, {parse_mode: 'html', ...displayResultMenuOptions});
+            replyBody = replyHeader + '\n' + replyBody;
+            userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...displayResultMenuOptions});
+            this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            return await this.bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
+            await this.bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
         }
     }
 
