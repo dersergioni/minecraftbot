@@ -20,6 +20,7 @@ class GoToLocations {
             userData.locations.push(number);
             userData.entering = '';
             if (userData.locations.length !== 3) throw('');
+            await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, `Выбери куда:`, requestDestinationTypeOfLocation);
             this.sessionModes.set(chatId, Modes.SelectDestinationType);
         } catch (e) {
@@ -80,6 +81,7 @@ class GoToLocations {
                 replyBody += `Расстояние: ${Math.floor(currMinDistance)}`
             }
             replyBody = replyHeader + '\n' + replyBody;
+            await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...startOptions});
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {

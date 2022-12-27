@@ -9,4 +9,6 @@ module.exports = {
     RequestDeleteMap: 7,
     RequestDeleteLocations: 8,
     SelectDestinationType: 9,
+    RequestEditLocationDescription: 10,
+    EditDescription: 11,
 };

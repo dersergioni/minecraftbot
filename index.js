@@ -5,7 +5,7 @@ const Modes = require('./sessionModes');
 const {startOptions, createMapOptions} = require('./tgReplyOptions')
 const AddLocations = require('./addLocations');
 const DisplayLocations = require('./displayLocations');
-const DeleteLocations = require('./deleteLocations');
+const EditLocations = require('./editLocations');
 const GoToLocations = require('./goToLocations');
 const EditAccountSettings = require('./editAccountSettings');
 const {getChatId, getDbUser} = require("./helpers");
@@ -22,7 +22,7 @@ const sessionModes = new Map();
 const sessionData = new Map();
 const addLocations = new AddLocations(bot, sessionModes, sessionData);
 const displayLocations = new DisplayLocations(bot, sessionModes, sessionData);
-const deleteLocations = new DeleteLocations(bot, sessionModes, sessionData);
+const editLocations = new EditLocations(bot, sessionModes, sessionData);
 const goToLocations = new GoToLocations(bot, sessionModes, sessionData);
 const editAccountSettings = new EditAccountSettings(bot, sessionModes, sessionData);
 
@@ -111,8 +111,15 @@ const messageCallback = async function (msg) {
             }
         } else if (sessionModes.get(chatId) === Modes.AddDescription) {
             await addLocations.finalize(msg);
+        } else if (sessionModes.get(chatId) === Modes.EditDescription) {
+            await editLocations.finalizeEditLocationDesc(msg);
+        } else if (sessionModes.get(chatId) === Modes.RequestEditLocationDescription) {
+            userData.entering = text;
+            await editLocations.promptNewDesc(msg);
+        } else if (sessionModes.get(chatId) === Modes.EditDescription) {
+            await editLocations.finalizeEditLocationDesc(msg);
         } else if (sessionModes.get(chatId) === Modes.RequestDeleteLocations) {
-            await deleteLocations.finalizeDeleteLocations(msg);
+            await editLocations.finalizeDeleteLocations(msg);
         } else if (text === '/add') {
             await addLocations.promptCoordinateOne(msg);
         } else if (text === '/all') {
@@ -154,8 +161,6 @@ const queryCallback = async function (msg) {
 
         if (data === '/start') {
             await startMenu(msg, chatId, user);
-        } else if (sessionModes.get(chatId) === Modes.RequestDeleteLocations) {
-            await deleteLocations.finalizeDeleteLocations(chatId, user, data);
         } else if (sessionModes.get(chatId) === Modes.EnterCoordinateOne) {
             try {
                 const userData = sessionData.get(chatId);
@@ -253,6 +258,12 @@ const queryCallback = async function (msg) {
             } catch (e) {
                 await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
             }
+        } else if (sessionModes.get(chatId) === Modes.RequestEditLocationDescription) {
+            await editLocations.promptNewDesc(msg);
+        } else if (sessionModes.get(chatId) === Modes.EditDescription) {
+            await editLocations.finalizeEditLocationDesc(msg);
+        } else if (sessionModes.get(chatId) === Modes.RequestDeleteLocations) {
+            await editLocations.finalizeDeleteLocations(chatId, user, data);
         } else if (data === '/add') {
             await addLocations.promptCoordinateOne(msg);
         } else if (data === '/all') {
@@ -270,8 +281,10 @@ const queryCallback = async function (msg) {
         } else if (data === '/declinemapdeletion') {
             sessionModes.set(chatId, Modes.Start);
             await bot.sendMessage(chatId, 'Хорошо', startOptions);
+        } else if (data === '/editlocationdesc') {
+            await editLocations.requestEditLocationDesc(msg);
         } else if (data === '/deletelocation') {
-            await deleteLocations.requestDeleteLocations(msg);
+            await editLocations.requestDeleteLocations(msg);
         } else {
             await bot.sendMessage(chatId, 'Нет такой команды', startOptions);
         }
