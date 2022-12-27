@@ -1,4 +1,9 @@
-const {requestTypeOfLocationOptions, startOptions, displayResultMenuOptions} = require('./tgReplyOptions');
+const {
+    requestTypeOfLocationOptions,
+    startOptions,
+    displayResultMenuOptions,
+    createMapOptions
+} = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
 const {getChatId, getDbUser, getInputData} = require("./helpers");
@@ -33,6 +38,9 @@ class DisplayLocations {
             if (mode === Modes.SelectType) type = getInputData(msg);
 
             const mapId = await db.Map.findOne({where: {userId: user}});
+            if (!mapId) {
+                return await this.bot.sendMessage(chatId, 'Сначала необходимо создать карту', createMapOptions);
+            }
             let replyHeader = '';
             let replyBody = '';
             let locations;

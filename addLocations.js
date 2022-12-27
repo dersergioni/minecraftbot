@@ -1,5 +1,5 @@
 const {
-    requestCoordinatesOptions, requestTypeOfLocationOptions, startOptions, emptyOptions
+    requestCoordinatesOptions, requestTypeOfLocationOptions, startOptions, emptyOptions, createMapOptions
 } = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
@@ -18,6 +18,9 @@ class AddLocations {
         try {
             const user = getDbUser(msg);
             const mapId = await db.Map.findOne({where: {userId: user}});
+            if (!mapId) {
+                return await this.bot.sendMessage(chatId, 'Сначала необходимо создать карту', createMapOptions);
+            }
             let sentMsg = await this.bot.sendMessage(chatId, 'Первая координата:');
             const sentReq = await this.bot.sendMessage(chatId, 'Ок, введи первую координату:', requestCoordinatesOptions);
             this.sessionData.set(chatId, {
@@ -92,6 +95,7 @@ class AddLocations {
         try {
             const userData = this.sessionData.get(chatId);
             userData.type = getInputData(msg);
+            // await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, `Отлично, это ${userData.type}. И последнее, теперь описание (можно оставить пустым):`, emptyOptions);
             this.modes.set(chatId, Modes.AddDescription);
         } catch (e) {
@@ -113,6 +117,7 @@ class AddLocations {
             userData.first = userData.locations[0];
             userData.center = userData.locations[1];
             userData.last = userData.locations[2];
+            // await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             await db.Location.create(userData);
             userData.originReq = await this.bot.sendMessage(chatId, `Готово`, startOptions);
             this.modes.set(chatId, Modes.Start);

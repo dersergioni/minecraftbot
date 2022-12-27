@@ -2,7 +2,7 @@ const {
     startOptions,
     requestDeleteLocationsOptions,
     requestEditLocationDescriptionOptions,
-    emptyOptions, requestCoordinatesOptions
+    emptyOptions
 } = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');

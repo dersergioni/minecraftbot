@@ -1,4 +1,4 @@
-const {startOptions, requestDestinationTypeOfLocation} = require('./tgReplyOptions');
+const {startOptions, requestDestinationTypeOfLocation, createMapOptions} = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
 const {getChatId, getDbUser, getInputData} = require("./helpers");
@@ -45,6 +45,9 @@ class GoToLocations {
 
 
             const mapId = await db.Map.findOne({where: {userId: user}});
+            if (!mapId) {
+                return await this.bot.sendMessage(chatId, 'Сначала необходимо создать карту', createMapOptions);
+            }
             let replyHeader = '';
             let replyBody = '';
             let locations;
@@ -81,7 +84,7 @@ class GoToLocations {
                 replyBody += `Расстояние: ${Math.floor(currMinDistance)}`
             }
             replyBody = replyHeader + '\n' + replyBody;
-            await this.bot.deleteMessage(chatId, userData.originReq.message_id);
+            // await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...startOptions});
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
