@@ -6,13 +6,13 @@ const {
 } = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
-const {getChatId, getInputData, getDbUser} = require("./helpers");
+const {getChatId, getInputData} = require("./helpers");
 
 class EditLocations {
 
     constructor(bot, sessionModes, sessionData) {
         this.bot = bot;
-        this.modes = sessionModes;
+        this.sessionModes = sessionModes;
         this.sessionData = sessionData;
     }
 
@@ -22,7 +22,7 @@ class EditLocations {
         try {
             const userData = this.sessionData.get(chatId);
             userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи номер точки описание которой надо изменить:', requestEditLocationDescriptionOptions);
-            this.modes.set(chatId, Modes.RequestEditLocationDescription);
+            this.sessionModes.set(chatId, Modes.RequestEditLocationDescription);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Ошибка на сервере');
         }
@@ -37,7 +37,7 @@ class EditLocations {
             userData.indxToEdit = number;
             userData.entering = '';
             userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи новое описание:', emptyOptions);
-            this.modes.set(chatId, Modes.EditDescription);
+            this.sessionModes.set(chatId, Modes.EditDescription);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
         }
@@ -61,7 +61,7 @@ class EditLocations {
             res.desc = desc;
             await res.save();
             userData.originReq = await this.bot.sendMessage(chatId, `Готово`, startOptions);
-            this.modes.set(chatId, Modes.Start);
+            this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз', emptyOptions);
         }
@@ -72,7 +72,7 @@ class EditLocations {
         try {
             const userData = this.sessionData.get(chatId);
             userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи номера точек которые надо удалить через пробел:', requestDeleteLocationsOptions);
-            this.modes.set(chatId, Modes.RequestDeleteLocations);
+            this.sessionModes.set(chatId, Modes.RequestDeleteLocations);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
         }
@@ -97,7 +97,7 @@ class EditLocations {
                 await res.destroy();
             }
             userData.originReq = await this.bot.sendMessage(chatId, 'Готово', startOptions);
-            this.modes.set(chatId, Modes.Start);
+            this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Ошибка на сервере');
         }

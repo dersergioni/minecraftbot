@@ -41,15 +41,19 @@ const startMenu = async function (msg) {
     // await initUser();
     const chatId = getChatId(msg);
     const user = getDbUser(msg);
+    const userData = sessionData.get(chatId);
     const mapId = await db.Map.findOne({where: {userId: user}});
-    sessionModes.set(chatId, Modes.Start);
     await bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/741/656/7416567c-bc94-36e7-8d4b-ecb706761efc/11.webp');
+    let sentReq;
     if (!mapId) {
-        return await bot.sendMessage(chatId, `Добрый вечер я диспетчер, ${msg.from.first_name}, для начала нужно создать карту, ок?`, createMapOptions);
+        sentReq = await bot.sendMessage(chatId, `Добрый вечер я диспетчер, ${msg.from.first_name}, для начала нужно создать карту, ок?`, createMapOptions);
     } else {
-        return await bot.sendMessage(chatId, `Добрый вечер я диспетчер, играем, ${msg.from.first_name}?`, startOptions);
+        sentReq = await bot.sendMessage(chatId, `Добрый вечер я диспетчер, играем, ${msg.from.first_name}?`, startOptions);
     }
+    userData.originReq = sentReq;
+    sessionModes.set(chatId, Modes.Start);
 }
+
 
 try {
     bot.setMyCommands([{command: '/start', description: 'Начальное приветствие'}, {
@@ -63,7 +67,7 @@ try {
     }]);
 } catch (e) {
     console.log('Cannot set Bot MyCommand:', e);
-    bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
+    bot.sendMessage(chatId, 'Ошибка на сервере');
 }
 
 const messageCallback = async function (msg) {
@@ -75,31 +79,30 @@ const messageCallback = async function (msg) {
         user = chatId;
     }
     // console.log('\n\n!message:', msg);
-    // console.log('!message mode:', sessionModes.get(chatId));
     try {
 
-        const userData = sessionData.get(chatId);
-        if (userData === undefined)
+        if (sessionData.get(chatId) === undefined)
             sessionData.set(chatId, {});
+        const userData = sessionData.get(chatId);
+
+        const sessionMode = sessionModes.get(chatId);
+        // console.warn('!message mode:', sessionMode);
 
         if (text === '/start') {
             await startMenu(msg, chatId, user);
-        } else if (sessionModes.get(chatId) === Modes.EnterCoordinateOne) {
-            const userData = sessionData.get(chatId);
+        } else if (sessionMode === Modes.EnterCoordinateOne) {
             userData.entering = text;
             await bot.editMessageText(userData.demoMsg.text + ' ' + text, {
                 chat_id: chatId, message_id: userData.demoMsg.message_id
             });
             await addLocations.promptCoordinateTwo(msg);
-        } else if (sessionModes.get(chatId) === Modes.EnterCoordinateTwo) {
-            const userData = sessionData.get(chatId);
+        } else if (sessionMode === Modes.EnterCoordinateTwo) {
             userData.entering = text;
             await bot.editMessageText(userData.demoMsg.text + ' ' + text, {
                 chat_id: chatId, message_id: userData.demoMsg.message_id
             });
             await addLocations.promptCoordinateThree(msg);
-        } else if (sessionModes.get(chatId) === Modes.EnterCoordinateThree) {
-            const userData = sessionData.get(chatId);
+        } else if (sessionMode === Modes.EnterCoordinateThree) {
             userData.entering = text;
             await bot.editMessageText(userData.demoMsg.text + ' ' + text, {
                 chat_id: chatId, message_id: userData.demoMsg.message_id
@@ -109,16 +112,16 @@ const messageCallback = async function (msg) {
             } else {
                 await addLocations.promptType(msg);
             }
-        } else if (sessionModes.get(chatId) === Modes.AddDescription) {
+        } else if (sessionMode === Modes.AddDescription) {
             await addLocations.finalize(msg);
-        } else if (sessionModes.get(chatId) === Modes.EditDescription) {
+        } else if (sessionMode === Modes.EditDescription) {
             await editLocations.finalizeEditLocationDesc(msg);
-        } else if (sessionModes.get(chatId) === Modes.RequestEditLocationDescription) {
+        } else if (sessionMode === Modes.RequestEditLocationDescription) {
             userData.entering = text;
             await editLocations.promptNewDesc(msg);
-        } else if (sessionModes.get(chatId) === Modes.EditDescription) {
+        } else if (sessionMode === Modes.EditDescription) {
             await editLocations.finalizeEditLocationDesc(msg);
-        } else if (sessionModes.get(chatId) === Modes.RequestDeleteLocations) {
+        } else if (sessionMode === Modes.RequestDeleteLocations) {
             await editLocations.finalizeDeleteLocations(msg);
         } else if (text === '/add') {
             await addLocations.promptCoordinateOne(msg);
@@ -137,7 +140,7 @@ const messageCallback = async function (msg) {
         }
     } catch (e) {
         console.log('Exception:', e);
-        await bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
+        await bot.sendMessage(chatId, 'Ошибка на сервере');
     }
 }
 
@@ -149,22 +152,25 @@ const queryCallback = async function (msg) {
         user = chatId;
     }
     // console.log('\n\n!callback_query:', msg);
-    // console.log('!callback_query mode:', sessionModes.get(chatId));
     try {
 
-        let answerResp = await bot.answerCallbackQuery(msg.id);
-        // console.log('answerCallbackQuery:', answerResp);
+        await bot.answerCallbackQuery(msg.id);
 
-        const userData = sessionData.get(chatId);
-        if (userData === undefined)
+        if (sessionData.get(chatId) === undefined)
             sessionData.set(chatId, {});
+        const userData = sessionData.get(chatId);
+
+        const sessionMode = sessionModes.get(chatId);
+        console.warn('!callback_query mode:', sessionMode);
+        if (sessionMode !== undefined && msg.message.message_id !== userData.originReq?.message_id) {
+            await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+            return;
+        }
 
         if (data === '/start') {
             await startMenu(msg, chatId, user);
-        } else if (sessionModes.get(chatId) === Modes.EnterCoordinateOne) {
+        } else if (sessionMode === Modes.EnterCoordinateOne) {
             try {
-                const userData = sessionData.get(chatId);
-                if (msg.message.message_id !== userData.originReq.message_id) throw('');
                 if (data === 'Далее') {
                     await addLocations.promptCoordinateTwo(msg);
                 } else if (data === '\u232B') {
@@ -186,10 +192,8 @@ const queryCallback = async function (msg) {
                 await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
             }
 
-        } else if (sessionModes.get(chatId) === Modes.EnterCoordinateTwo) {
+        } else if (sessionMode === Modes.EnterCoordinateTwo) {
             try {
-                const userData = sessionData.get(chatId);
-                if (msg.message.message_id !== userData.originReq.message_id) throw('');
                 if (data === 'Далее') {
                     await addLocations.promptCoordinateThree(msg);
                 } else if (data === '\u232B') {
@@ -210,10 +214,8 @@ const queryCallback = async function (msg) {
             } catch (e) {
                 await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
             }
-        } else if (sessionModes.get(chatId) === Modes.EnterCoordinateThree) {
+        } else if (sessionMode === Modes.EnterCoordinateThree) {
             try {
-                const userData = sessionData.get(chatId);
-                if (msg.message.message_id !== userData.originReq.message_id) throw('');
                 if (data === 'Далее') {
                     if (userData.initialCommand === '/go') {
                         await goToLocations.promptType(msg);
@@ -238,31 +240,27 @@ const queryCallback = async function (msg) {
             } catch (e) {
                 await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
             }
-        } else if (sessionModes.get(chatId) === Modes.AddType) {
+        } else if (sessionMode === Modes.AddType) {
             try {
-                const userData = sessionData.get(chatId);
-                if (msg.message.message_id !== userData.originReq.message_id) throw('');
                 await addLocations.promptDesc(msg);
             } catch (e) {
                 await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
             }
-        } else if (sessionModes.get(chatId) === Modes.AddDescription) {
+        } else if (sessionMode === Modes.AddDescription) {
             await addLocations.finalize(msg);
-        } else if (sessionModes.get(chatId) === Modes.SelectType) {
+        } else if (sessionMode === Modes.SelectType) {
             await displayLocations.showLocations(msg);
-        } else if (sessionModes.get(chatId) === Modes.SelectDestinationType) {
+        } else if (sessionMode === Modes.SelectDestinationType) {
             try {
-                const userData = sessionData.get(chatId);
-                if (msg.message.message_id !== userData.originReq.message_id) throw('');
                 await goToLocations.calculate(msg);
             } catch (e) {
                 await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
             }
-        } else if (sessionModes.get(chatId) === Modes.RequestEditLocationDescription) {
+        } else if (sessionMode === Modes.RequestEditLocationDescription) {
             await editLocations.promptNewDesc(msg);
-        } else if (sessionModes.get(chatId) === Modes.EditDescription) {
+        } else if (sessionMode === Modes.EditDescription) {
             await editLocations.finalizeEditLocationDesc(msg);
-        } else if (sessionModes.get(chatId) === Modes.RequestDeleteLocations) {
+        } else if (sessionMode === Modes.RequestDeleteLocations) {
             await editLocations.finalizeDeleteLocations(chatId, user, data);
         } else if (data === '/add') {
             await addLocations.promptCoordinateOne(msg);
@@ -288,10 +286,9 @@ const queryCallback = async function (msg) {
         } else {
             await bot.sendMessage(chatId, 'Нет такой команды', startOptions);
         }
-
     } catch (e) {
         console.log('Exception:', e);
-        await bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
+        await bot.sendMessage(chatId, 'Ошибка на сервере');
     }
 }
 

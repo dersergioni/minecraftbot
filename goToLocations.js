@@ -88,7 +88,7 @@ class GoToLocations {
             userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...startOptions});
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
+            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
         }
     }
 

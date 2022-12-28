@@ -1,6 +1,5 @@
 const {
     requestTypeOfLocationOptions,
-    startOptions,
     displayResultMenuOptions,
     createMapOptions
 } = require('./tgReplyOptions');
@@ -24,7 +23,7 @@ class DisplayLocations {
             userData.originReq = await this.bot.sendMessage(chatId, `Выбери тип:`, requestTypeOfLocationOptions);
             this.sessionModes.set(chatId, Modes.SelectType);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
+            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
         }
     }
 
@@ -51,7 +50,7 @@ class DisplayLocations {
                 locations = await db.Location.findAll({where: {type: type, mapId: mapId.dataValues.mapId}});
                 replyHeader += '<b>Все точки типа "' + type + '":</b>';
             }
-            this.sessionData.set(chatId, {lastDisplayed: locations});
+            userData.lastDisplayed = locations;
             for (let i = 0; i < locations.length; ++i) {
                 let line = '<pre>';
                 line += `${('   ' + (i + 1)).slice(-3)} `;
@@ -81,7 +80,7 @@ class DisplayLocations {
             userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...displayResultMenuOptions});
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Ошибка на сервере', startOptions);
+            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
         }
     }
 

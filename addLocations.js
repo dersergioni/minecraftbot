@@ -9,7 +9,7 @@ class AddLocations {
 
     constructor(bot, sessionModes, sessionData) {
         this.bot = bot;
-        this.modes = sessionModes;
+        this.sessionModes = sessionModes;
         this.sessionData = sessionData;
     }
 
@@ -17,20 +17,20 @@ class AddLocations {
         const chatId = getChatId(msg);
         try {
             const user = getDbUser(msg);
+            const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) {
                 return await this.bot.sendMessage(chatId, 'Сначала необходимо создать карту', createMapOptions);
             }
             let sentMsg = await this.bot.sendMessage(chatId, 'Первая координата:');
             const sentReq = await this.bot.sendMessage(chatId, 'Ок, введи первую координату:', requestCoordinatesOptions);
-            this.sessionData.set(chatId, {
-                entering: '',
-                mapId: mapId.dataValues.mapId,
-                demoMsg: sentMsg,
-                originReq: sentReq,
-                initialCommand: getInputData(msg)
-            });
-            this.modes.set(chatId, Modes.EnterCoordinateOne);
+            userData.entering = '';
+            userData.mapId = mapId.dataValues.mapId;
+            userData.demoMsg = sentMsg;
+            userData.originReq = sentReq;
+            userData.initialCommand = getInputData(msg);
+
+            this.sessionModes.set(chatId, Modes.EnterCoordinateOne);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Ошибка на сервере');
         }
@@ -48,7 +48,7 @@ class AddLocations {
             let sentMsg = await this.bot.sendMessage(chatId, 'Вторая координата:');
             userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи вторую координату:', requestCoordinatesOptions);
             userData.demoMsg = sentMsg;
-            this.modes.set(chatId, Modes.EnterCoordinateTwo);
+            this.sessionModes.set(chatId, Modes.EnterCoordinateTwo);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
         }
@@ -67,7 +67,7 @@ class AddLocations {
             let sentMsg = await this.bot.sendMessage(chatId, 'Третья координата:');
             userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи третью координату:', requestCoordinatesOptions);
             userData.demoMsg = sentMsg;
-            this.modes.set(chatId, Modes.EnterCoordinateThree);
+            this.sessionModes.set(chatId, Modes.EnterCoordinateThree);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
         }
@@ -84,7 +84,7 @@ class AddLocations {
             if (userData.locations.length !== 3) throw('');
             await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, `Отлично, координаты [${userData.locations[0]} ${userData.locations[1]} ${userData.locations[2]}], теперь тип точки:`, requestTypeOfLocationOptions);
-            this.modes.set(chatId, Modes.AddType);
+            this.sessionModes.set(chatId, Modes.AddType);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
         }
@@ -97,7 +97,7 @@ class AddLocations {
             userData.type = getInputData(msg);
             // await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, `Отлично, это ${userData.type}. И последнее, теперь описание (можно оставить пустым):`, emptyOptions);
-            this.modes.set(chatId, Modes.AddDescription);
+            this.sessionModes.set(chatId, Modes.AddDescription);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
         }
@@ -120,7 +120,7 @@ class AddLocations {
             // await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             await db.Location.create(userData);
             userData.originReq = await this.bot.sendMessage(chatId, `Готово`, startOptions);
-            this.modes.set(chatId, Modes.Start);
+            this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз', emptyOptions);
         }
