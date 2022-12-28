@@ -84,8 +84,9 @@ class GoToLocations {
                 replyBody += `Расстояние: ${Math.floor(currMinDistance)}`
             }
             replyBody = replyHeader + '\n' + replyBody;
-            // await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...startOptions});
+            delete userData.locations;
+            delete userData.initialCommand;
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Ошибка на сервере');

@@ -86,7 +86,7 @@ const messageCallback = async function (msg) {
         const userData = sessionData.get(chatId);
 
         const sessionMode = sessionModes.get(chatId);
-        // console.warn('!message mode:', sessionMode);
+        // console.log('!message mode:', sessionMode);
 
         if (text === '/start') {
             await startMenu(msg, chatId, user);
@@ -161,7 +161,7 @@ const queryCallback = async function (msg) {
         const userData = sessionData.get(chatId);
 
         const sessionMode = sessionModes.get(chatId);
-        console.warn('!callback_query mode:', sessionMode);
+        // console.log('!callback_query mode:', sessionMode);
         if (sessionMode !== undefined && msg.message.message_id !== userData.originReq?.message_id) {
             await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
             return;
@@ -283,6 +283,12 @@ const queryCallback = async function (msg) {
             await editLocations.requestEditLocationDesc(msg);
         } else if (data === '/deletelocation') {
             await editLocations.requestDeleteLocations(msg);
+        } else if (data === '/throw') {
+            await bot.sendDice(chatId);
+        } else if (data === '/decide') {
+            const actions = ['строить', 'рыбачить', 'добывать опыт', 'путешествовать', 'идти в Незер', 'учиться чему-то новому', 'добывать ресурсы'];
+            const decision = Math.floor(Math.random() * actions.length);
+            await bot.sendMessage(chatId, `Давай-ка ${actions[decision]}!`);
         } else {
             await bot.sendMessage(chatId, 'Нет такой команды', startOptions);
         }

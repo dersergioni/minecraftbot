@@ -6,6 +6,10 @@ module.exports = {
                 text: 'Показать ближайшую точку', callback_data: '/go'
             }], [{text: 'Показать все точки', callback_data: '/all'}], [{
                 text: 'Показать только точки одного типа', callback_data: '/type'
+            }], [{
+                text: 'Бросить кость', callback_data: '/throw'
+            }], [{
+                text: 'Решить, что делать дальше', callback_data: '/decide'
             }]]
         })
     },

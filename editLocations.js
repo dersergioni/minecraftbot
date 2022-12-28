@@ -1,8 +1,5 @@
 const {
-    startOptions,
-    requestDeleteLocationsOptions,
-    requestEditLocationDescriptionOptions,
-    emptyOptions
+    startOptions, requestDeleteLocationsOptions, requestEditLocationDescriptionOptions, emptyOptions
 } = require('./tgReplyOptions');
 const db = require('./dbModels');
 const Modes = require('./sessionModes');
@@ -48,12 +45,13 @@ class EditLocations {
     async finalizeEditLocationDesc(msg) {
         const chatId = getChatId(msg);
         try {
-            // const user = getDbUser(msg);
             const userData = this.sessionData.get(chatId);
             let desc = getInputData(msg);
             if (desc !== 'empty') {
                 desc = desc.trim();
-                userData.desc = desc.charAt(0).toUpperCase() + desc.slice(1);
+                desc = desc.charAt(0).toUpperCase() + desc.slice(1);
+            } else {
+                desc = '';
             }
             const lastResult = this.sessionData.get(chatId).lastDisplayed;
             const indx = lastResult[userData.indxToEdit - 1].dataValues.id;
@@ -61,6 +59,7 @@ class EditLocations {
             res.desc = desc;
             await res.save();
             userData.originReq = await this.bot.sendMessage(chatId, `Готово`, startOptions);
+            delete userData.indxToEdit;
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз', emptyOptions);
@@ -86,8 +85,7 @@ class EditLocations {
             let numbersToDelete = data.split(' ');
             numbersToDelete.forEach((element, index) => {
                 const number = parseInt(element);
-                if (isNaN(number))
-                    throw('');
+                if (isNaN(number)) throw('');
                 numbersToDelete[index] = number;
             });
             const lastResult = this.sessionData.get(chatId).lastDisplayed;

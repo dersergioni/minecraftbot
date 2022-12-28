@@ -25,11 +25,10 @@ class AddLocations {
             let sentMsg = await this.bot.sendMessage(chatId, 'Первая координата:');
             const sentReq = await this.bot.sendMessage(chatId, 'Ок, введи первую координату:', requestCoordinatesOptions);
             userData.entering = '';
-            userData.mapId = mapId.dataValues.mapId;
             userData.demoMsg = sentMsg;
             userData.originReq = sentReq;
             userData.initialCommand = getInputData(msg);
-
+            userData.mapId = mapId.dataValues.mapId;
             this.sessionModes.set(chatId, Modes.EnterCoordinateOne);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Ошибка на сервере');
@@ -95,7 +94,6 @@ class AddLocations {
         try {
             const userData = this.sessionData.get(chatId);
             userData.type = getInputData(msg);
-            // await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, `Отлично, это ${userData.type}. И последнее, теперь описание (можно оставить пустым):`, emptyOptions);
             this.sessionModes.set(chatId, Modes.AddDescription);
         } catch (e) {
@@ -117,9 +115,16 @@ class AddLocations {
             userData.first = userData.locations[0];
             userData.center = userData.locations[1];
             userData.last = userData.locations[2];
-            // await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             await db.Location.create(userData);
             userData.originReq = await this.bot.sendMessage(chatId, `Готово`, startOptions);
+            delete userData.first;
+            delete userData.center;
+            delete userData.last;
+            delete userData.author;
+            delete userData.type;
+            delete userData.desc;
+            delete userData.demoMsg;
+            delete userData.initialCommand;
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз', emptyOptions);
