@@ -18,7 +18,8 @@ class EditAccountSettings {
             const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (mapId) {
-                return await this.bot.sendMessage(chatId, 'Карта уже есть', startOptions);
+                userData.originReq = await this.bot.sendMessage(chatId, 'Карта уже есть', startOptions);
+                return;
             }
             let currMaxMapId = await db.Map.max('mapId');
             if (isNaN(currMaxMapId)) currMaxMapId = 0;
@@ -36,7 +37,8 @@ class EditAccountSettings {
             const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) {
-                return await this.bot.sendMessage(chatId, 'Сложно удалить то, чего нету', createMapOptions);
+                userData.originReq = await this.bot.sendMessage(chatId, 'Сложно удалить то, чего нету', createMapOptions);
+                return;
             }
             this.sessionModes.set(chatId, Modes.RequestDeleteMap);
             userData.originReq = await this.bot.sendMessage(chatId, 'Вы уверены?', confirmMapDeletionOptions);
@@ -53,7 +55,8 @@ class EditAccountSettings {
             const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) {
-                return await this.bot.sendMessage(chatId, 'Сложно удалить то, чего нету', createMapOptions);
+                userData.originReq =  await this.bot.sendMessage(chatId, 'Сложно удалить то, чего нету', createMapOptions);
+                return;
             }
             await db.Location.destroy({where: {mapId: mapId.dataValues.mapId}});
             await db.Map.destroy({where: {mapId: mapId.dataValues.mapId}});

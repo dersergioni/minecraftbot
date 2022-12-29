@@ -62,6 +62,8 @@ try {
         command: '/go', description: 'Показать ближайшую точку'
     }, {
         command: '/all', description: 'Показать список всех точек'
+    }, {
+        command: '/allbytype', description: 'Показать список всех точек с сортировкой по типу'
     }, {command: '/type', description: 'Показать список точек определенного типа'}, {
         command: '/deletemap', description: 'Удалить карту и все локации на ней'
     }]);
@@ -130,6 +132,8 @@ const messageCallback = async function (msg) {
             await addLocations.promptCoordinateOne(msg);
         } else if (text === '/all') {
             await displayLocations.showLocations(msg);
+        } else if (text === '/allbytype') {
+            await displayLocations.showLocations(msg, true);
         } else if (text === '/type') {
             await displayLocations.promptType(msg);
         } else if (text === '/go') {
@@ -273,6 +277,8 @@ const queryCallback = async function (msg) {
             await addLocations.promptCoordinateOne(msg);
         } else if (data === '/all') {
             await displayLocations.showLocations(msg);
+        } else if (data === '/allbytype') {
+            await displayLocations.showLocations(msg, true);
         } else if (data === '/type') {
             await displayLocations.promptType(msg);
         } else if (data === '/go') {

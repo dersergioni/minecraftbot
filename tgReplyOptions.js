@@ -5,6 +5,9 @@ module.exports = {
             inline_keyboard: [[{text: 'Добавить точку', callback_data: '/add'}], [{
                 text: 'Показать ближайшую точку', callback_data: '/go'
             }], [{text: 'Показать все точки', callback_data: '/all'}], [{
+                text: 'Показать список всех точек с сортировкой по типу',
+                callback_data: '/allbytype'
+            }], [{
                 text: 'Показать только точки одного типа', callback_data: '/type'
             }], [{
                 text: 'Бросить кость', callback_data: '/throw'
@@ -82,7 +85,7 @@ module.exports = {
         reply_markup: JSON.stringify({
             inline_keyboard: [[{
                 text: 'Изменить описание точки', callback_data: '/editlocationdesc'
-            }],[{
+            }], [{
                 text: 'Изменить тип точки', callback_data: '/editlocationtype'
             }], [{text: 'Удалить точки (указать далее)', callback_data: '/deletelocation'}], [{
                 text: 'Главное меню', callback_data: '/start'

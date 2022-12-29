@@ -7,7 +7,6 @@ const db = require('./dbModels');
 const Modes = require('./sessionModes');
 const {getChatId, getDbUser, getInputData} = require("./helpers");
 
-
 class DisplayLocations {
 
     constructor(bot, sessionModes, sessionData) {
@@ -27,7 +26,7 @@ class DisplayLocations {
         }
     }
 
-    async showLocations(msg) {
+    async showLocations(msg, isByType) {
         const chatId = getChatId(msg);
         try {
             const user = getDbUser(msg);
@@ -43,11 +42,21 @@ class DisplayLocations {
             let replyHeader = '';
             let replyBody = '';
             let locations;
+            const orderBy = [];
+            if (isByType)
+                orderBy.push(['type', 'ASC']);
+
             if (type === undefined) {
-                locations = await db.Location.findAll({where: {mapId: mapId.dataValues.mapId}});
+                locations = await db.Location.findAll({
+                    where: {mapId: mapId.dataValues.mapId},
+                    order: orderBy
+                });
                 replyHeader += '<b>Все точки:</b>';
             } else {
-                locations = await db.Location.findAll({where: {type: type, mapId: mapId.dataValues.mapId}});
+                locations = await db.Location.findAll({
+                    where: {type: type, mapId: mapId.dataValues.mapId},
+                    order: orderBy
+                });
                 replyHeader += '<b>Все точки типа "' + type + '":</b>';
             }
             userData.lastDisplayed = locations;
@@ -77,6 +86,8 @@ class DisplayLocations {
                 replyBody = '<b>Нету</b>'
             }
             replyBody = replyHeader + '\n' + replyBody;
+            if (mode === Modes.SelectType)
+                await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...displayResultMenuOptions});
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {

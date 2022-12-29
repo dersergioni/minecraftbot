@@ -93,7 +93,10 @@ class AddLocations {
         const chatId = getChatId(msg);
         try {
             const userData = this.sessionData.get(chatId);
+            const mode = this.sessionModes.get(chatId);
             userData.type = getInputData(msg);
+            if (mode === Modes.AddType)
+                await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, `Отлично, это ${userData.type}. И последнее, теперь описание (можно оставить пустым):`, emptyOptions);
             this.sessionModes.set(chatId, Modes.AddDescription);
         } catch (e) {
@@ -106,6 +109,7 @@ class AddLocations {
         try {
             const user = getDbUser(msg);
             const userData = this.sessionData.get(chatId);
+            const mode = this.sessionModes.get(chatId);
             let desc = getInputData(msg);
             if (desc !== 'empty') {
                 desc = desc.trim();
@@ -116,6 +120,8 @@ class AddLocations {
             userData.center = userData.locations[1];
             userData.last = userData.locations[2];
             await db.Location.create(userData);
+            if (mode === Modes.AddDescription)
+                await this.bot.deleteMessage(chatId, userData.originReq.message_id);
             userData.originReq = await this.bot.sendMessage(chatId, `Готово`, startOptions);
             delete userData.first;
             delete userData.center;
