@@ -11,4 +11,6 @@ module.exports = {
     SelectDestinationType: 9,
     RequestEditLocationDescription: 10,
     EditDescription: 11,
+    RequestEditLocationType: 12,
+    EditType: 13,
 };

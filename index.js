@@ -114,13 +114,16 @@ const messageCallback = async function (msg) {
             }
         } else if (sessionMode === Modes.AddDescription) {
             await addLocations.finalize(msg);
-        } else if (sessionMode === Modes.EditDescription) {
-            await editLocations.finalizeEditLocationDesc(msg);
         } else if (sessionMode === Modes.RequestEditLocationDescription) {
             userData.entering = text;
             await editLocations.promptNewDesc(msg);
         } else if (sessionMode === Modes.EditDescription) {
             await editLocations.finalizeEditLocationDesc(msg);
+        } else if (sessionMode === Modes.RequestEditLocationType) {
+            userData.entering = text;
+            await editLocations.promptNewType(msg);
+        } else if (sessionMode === Modes.EditType) {
+            await editLocations.finalizeEditLocationType(msg);
         } else if (sessionMode === Modes.RequestDeleteLocations) {
             await editLocations.finalizeDeleteLocations(msg);
         } else if (text === '/add') {
@@ -260,6 +263,10 @@ const queryCallback = async function (msg) {
             await editLocations.promptNewDesc(msg);
         } else if (sessionMode === Modes.EditDescription) {
             await editLocations.finalizeEditLocationDesc(msg);
+        } else if (sessionMode === Modes.RequestEditLocationType) {
+            await editLocations.promptNewType(msg);
+        } else if (sessionMode === Modes.EditType) {
+            await editLocations.finalizeEditLocationType(msg);
         } else if (sessionMode === Modes.RequestDeleteLocations) {
             await editLocations.finalizeDeleteLocations(chatId, user, data);
         } else if (data === '/add') {
@@ -281,6 +288,8 @@ const queryCallback = async function (msg) {
             await bot.sendMessage(chatId, 'Хорошо', startOptions);
         } else if (data === '/editlocationdesc') {
             await editLocations.requestEditLocationDesc(msg);
+        } else if (data === '/editlocationtype') {
+            await editLocations.requestEditLocationType(msg);
         } else if (data === '/deletelocation') {
             await editLocations.requestDeleteLocations(msg);
         } else if (data === '/throw') {

@@ -82,9 +82,11 @@ module.exports = {
         reply_markup: JSON.stringify({
             inline_keyboard: [[{
                 text: 'Изменить описание точки', callback_data: '/editlocationdesc'
-            }], [{
-                text: 'Удалить точки (указать далее)', callback_data: '/deletelocation'
-            }], [{text: 'Главное меню', callback_data: '/start'}],]
+            }],[{
+                text: 'Изменить тип точки', callback_data: '/editlocationtype'
+            }], [{text: 'Удалить точки (указать далее)', callback_data: '/deletelocation'}], [{
+                text: 'Главное меню', callback_data: '/start'
+            }],]
         })
     },
 
@@ -95,6 +97,12 @@ module.exports = {
     },
 
     requestEditLocationDescriptionOptions: {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [[{text: 'Отменить', callback_data: '/start'}],]
+        })
+    },
+
+    requestEditLocationTypeOptions: {
         reply_markup: JSON.stringify({
             inline_keyboard: [[{text: 'Отменить', callback_data: '/start'}],]
         })
