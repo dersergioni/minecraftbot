@@ -5,9 +5,9 @@ const {
     requestEditLocationTypeOptions,
     requestTypeOfLocationOptions,
     emptyOptions
-} = require('./tgReplyOptions');
-const db = require('./dbModels');
-const Modes = require('./sessionModes');
+} = require('./tg-reply-options');
+const db = require('./db-models');
+const Modes = require('./session-modes');
 const {getChatId, getInputData} = require("./helpers");
 
 class EditLocations {
@@ -99,8 +99,8 @@ class EditLocations {
 
     async finalizeEditLocationType(msg) {
         const chatId = getChatId(msg);
+        const userData = this.sessionData.get(chatId);
         try {
-            const userData = this.sessionData.get(chatId);
             let type = getInputData(msg);
             if (type !== 'empty') {
                 type = type.trim();
@@ -117,7 +117,7 @@ class EditLocations {
             delete userData.indxToEdit;
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз', emptyOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз', emptyOptions);
         }
     }
 

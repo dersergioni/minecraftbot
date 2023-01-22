@@ -1,8 +1,8 @@
 const {
     requestCoordinatesOptions, requestTypeOfLocationOptions, startOptions, emptyOptions, createMapOptions
-} = require('./tgReplyOptions');
-const db = require('./dbModels');
-const Modes = require('./sessionModes');
+} = require('./tg-reply-options');
+const db = require('./db-models');
+const Modes = require('./session-modes');
 const {getChatId, getDbUser, getInputData} = require("./helpers");
 
 class AddLocations {
@@ -20,13 +20,11 @@ class AddLocations {
             const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) {
-                return await this.bot.sendMessage(chatId, 'Сначала необходимо создать карту', createMapOptions);
+                return userData.originReq = await this.bot.sendMessage(chatId, 'Сначала необходимо создать карту', createMapOptions);
             }
-            let sentMsg = await this.bot.sendMessage(chatId, 'Первая координата:');
-            const sentReq = await this.bot.sendMessage(chatId, 'Ок, введи первую координату:', requestCoordinatesOptions);
+            userData.demoMsg = await this.bot.sendMessage(chatId, 'Первая координата:');
+            userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи первую координату:', requestCoordinatesOptions);
             userData.entering = '';
-            userData.demoMsg = sentMsg;
-            userData.originReq = sentReq;
             userData.initialCommand = getInputData(msg);
             userData.mapId = mapId.dataValues.mapId;
             this.sessionModes.set(chatId, Modes.EnterCoordinateOne);
@@ -44,9 +42,8 @@ class AddLocations {
             userData.locations = [number];
             userData.entering = '';
             await this.bot.deleteMessage(chatId, userData.originReq.message_id);
-            let sentMsg = await this.bot.sendMessage(chatId, 'Вторая координата:');
+            userData.demoMsg = await this.bot.sendMessage(chatId, 'Вторая координата:');
             userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи вторую координату:', requestCoordinatesOptions);
-            userData.demoMsg = sentMsg;
             this.sessionModes.set(chatId, Modes.EnterCoordinateTwo);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
@@ -63,9 +60,8 @@ class AddLocations {
             userData.locations.push(number);
             userData.entering = '';
             await this.bot.deleteMessage(chatId, userData.originReq.message_id);
-            let sentMsg = await this.bot.sendMessage(chatId, 'Третья координата:');
+            userData.demoMsg = await this.bot.sendMessage(chatId, 'Третья координата:');
             userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи третью координату:', requestCoordinatesOptions);
-            userData.demoMsg = sentMsg;
             this.sessionModes.set(chatId, Modes.EnterCoordinateThree);
         } catch (e) {
             await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
@@ -106,9 +102,9 @@ class AddLocations {
 
     async finalize(msg) {
         const chatId = getChatId(msg);
+        const userData = this.sessionData.get(chatId);
         try {
             const user = getDbUser(msg);
-            const userData = this.sessionData.get(chatId);
             const mode = this.sessionModes.get(chatId);
             let desc = getInputData(msg);
             if (desc !== 'empty') {
@@ -133,7 +129,7 @@ class AddLocations {
             delete userData.initialCommand;
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз', emptyOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз', emptyOptions);
         }
     }
 

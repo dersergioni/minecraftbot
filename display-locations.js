@@ -2,9 +2,9 @@ const {
     requestTypeOfLocationOptions,
     displayResultMenuOptions,
     createMapOptions
-} = require('./tgReplyOptions');
-const db = require('./dbModels');
-const Modes = require('./sessionModes');
+} = require('./tg-reply-options');
+const db = require('./db-models');
+const Modes = require('./session-modes');
 const {getChatId, getDbUser, getInputData} = require("./helpers");
 
 class DisplayLocations {

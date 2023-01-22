@@ -1,6 +1,6 @@
-const {startOptions, confirmMapDeletionOptions, createMapOptions} = require('./tgReplyOptions');
-const db = require('./dbModels');
-const Modes = require('./sessionModes');
+const {startOptions, confirmMapDeletionOptions, createMapOptions} = require('./tg-reply-options');
+const db = require('./db-models');
+const Modes = require('./session-modes');
 const {getChatId, getDbUser} = require("./helpers");
 
 class EditAccountSettings {
@@ -18,8 +18,7 @@ class EditAccountSettings {
             const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (mapId) {
-                userData.originReq = await this.bot.sendMessage(chatId, 'Карта уже есть', startOptions);
-                return;
+                return userData.originReq = await this.bot.sendMessage(chatId, 'Карта уже есть', startOptions);
             }
             let currMaxMapId = await db.Map.max('mapId');
             if (isNaN(currMaxMapId)) currMaxMapId = 0;
@@ -37,8 +36,7 @@ class EditAccountSettings {
             const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) {
-                userData.originReq = await this.bot.sendMessage(chatId, 'Сложно удалить то, чего нету', createMapOptions);
-                return;
+                return userData.originReq = await this.bot.sendMessage(chatId, 'Сложно удалить то, чего нету', createMapOptions);
             }
             this.sessionModes.set(chatId, Modes.RequestDeleteMap);
             userData.originReq = await this.bot.sendMessage(chatId, 'Вы уверены?', confirmMapDeletionOptions);
@@ -55,8 +53,7 @@ class EditAccountSettings {
             const userData = this.sessionData.get(chatId);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) {
-                userData.originReq =  await this.bot.sendMessage(chatId, 'Сложно удалить то, чего нету', createMapOptions);
-                return;
+                return userData.originReq = await this.bot.sendMessage(chatId, 'Сложно удалить то, чего нету', createMapOptions);
             }
             await db.Location.destroy({where: {mapId: mapId.dataValues.mapId}});
             await db.Map.destroy({where: {mapId: mapId.dataValues.mapId}});

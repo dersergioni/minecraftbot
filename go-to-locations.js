@@ -1,6 +1,6 @@
-const {startOptions, requestDestinationTypeOfLocation, createMapOptions} = require('./tgReplyOptions');
-const db = require('./dbModels');
-const Modes = require('./sessionModes');
+const {startOptions, requestDestinationTypeOfLocation, createMapOptions} = require('./tg-reply-options');
+const db = require('./db-models');
+const Modes = require('./session-modes');
 const {getChatId, getDbUser, getInputData} = require("./helpers");
 
 class GoToLocations {
@@ -38,15 +38,14 @@ class GoToLocations {
     async calculate(msg) {
         const chatId = getChatId(msg);
         try {
+            const userData = this.sessionData.get(chatId);
             const user = getDbUser(msg);
             const mode = this.sessionModes.get(chatId);
             let type;
             if (mode === Modes.SelectDestinationType) type = getInputData(msg);
-
-
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) {
-                return await this.bot.sendMessage(chatId, 'Сначала необходимо создать карту', createMapOptions);
+                return userData.originReq = await this.bot.sendMessage(chatId, 'Сначала необходимо создать карту', createMapOptions);
             }
             let replyHeader = '';
             let replyBody = '';
@@ -59,7 +58,6 @@ class GoToLocations {
                 replyHeader += '<b>Ближайшая точка типа "' + type + '":</b>';
             }
 
-            const userData = this.sessionData.get(chatId);
             let currMinDistance = Number.MAX_VALUE;
             let candidate;
             for (let i = 0; i < locations.length; ++i) {
