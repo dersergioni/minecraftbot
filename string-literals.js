@@ -3,6 +3,14 @@ class LOCALIZATION {
 
     static WELCOME_TEXT_EN() {return 'Welcoming';}
 
+    static SET_RU_RU() {return 'Интерфейс на русском языке';}
+
+    static SET_RU_EN() {return 'Change to russian';}
+
+    static SET_EN_RU() {return 'Интерфейс на английском языке';}
+
+    static SET_EN_EN() {return 'Change to english';}
+
     static DELETE_MAP_RU() {return 'Удалить карту и все локации на ней';}
 
     static DELETE_MAP_EN() {return 'Delete the map and all points on it';}
@@ -219,14 +227,30 @@ class LOCALIZATION {
 
     static ANYWHERE_EN() { return 'Anywhere'; }
 
-    static ALL_POINTS_HEADER_RU() { return 'Все точки'; }
+    static ALL_POINTS_HEADER_RU() { return 'Все точки:'; }
 
-    static ALL_POINTS_HEADER_EN() { return ' All points'; }
+    static ALL_POINTS_HEADER_EN() { return ' All points:'; }
 
-    static ALL_POINTS_TYPE_HEADER_RU() { return 'Все точки типа'; }
+    static ALL_POINTS_TYPE_HEADER_RU(type) { return `Все точки типа ${type}:`; }
 
-    static ALL_POINTS_TYPE_HEADER_EN() { return ' All points with the type'; }
-    
+    static ALL_POINTS_TYPE_HEADER_EN(type) { return `All points with the type ${type}:`; }
+
+    static NEAREST_POINT_HEADER_RU() { return 'Ближайшая точка:'; }
+
+    static NEAREST_POINT_HEADER_EN() { return 'The nearest point:'; }
+
+    static NEAREST_POINT_TYPE_HEADER_RU(type) { return `Ближайшая точка типа ${type}:`; }
+
+    static NEAREST_POINT_TYPE_HEADER_EN(type) { return `The nearest point with the type ${type}:`; }
+
+    static NONE_RU() { return 'Нету'; }
+
+    static NONE_EN() { return 'No'; }
+
+    static DISTANCE_RU(arg) { return `Расстояние: ${arg}`; }
+
+    static DISTANCE_EN(arg) { return `Distance: ${arg}`; }
+
 }
 
 class StringBuilder {
@@ -240,12 +264,54 @@ class StringBuilder {
         this.language = lang;
     }
 
+    getLocalizedPointType(type) {
+
+        switch (type) {
+            case LOCALIZATION['HOME_RU']():
+                return this.HOME();
+            case LOCALIZATION['SHELTER_RU']():
+                return this.SHELTER();
+            case LOCALIZATION['HOME_RU']():
+                return this.HOME();
+            case LOCALIZATION['VILLAGE_RU']():
+                return this.VILLAGE();
+            case LOCALIZATION['SHIP_RU']():
+                return this.SHIP();
+            case LOCALIZATION['TREASURE_RU']():
+                return this.TREASURE();
+            case LOCALIZATION['PORTAL_RU']():
+                return this.PORTAL();
+            case LOCALIZATION['FORTRESS_RU']():
+                return this.FORTRESS();
+            case LOCALIZATION['HOME_RU']():
+                return this.HOME();
+            case LOCALIZATION['WITCH_HOUSE_RU']():
+                return this.WITCH_HOUSE();
+            case LOCALIZATION['WRECK_RU']():
+                return this.WRECK();
+            case LOCALIZATION['INTERESTING_PLACE_RU']():
+                return this.INTERESTING_PLACE();
+            default:
+                return type;
+        }
+    }
+
     f_(function_name) {
         return function_name.name + '_' + this.language;
     }
 
     WELCOME_TEXT() {
         const func_name = this.f_(this.WELCOME_TEXT);
+        return LOCALIZATION[func_name]();
+    }
+
+     SET_RU() {
+        const func_name = this.f_(this.SET_RU);
+        return LOCALIZATION[func_name]();
+    }
+
+    SET_EN() {
+        const func_name = this.f_(this.SET_EN);
         return LOCALIZATION[func_name]();
     }
 
@@ -527,9 +593,29 @@ class StringBuilder {
         return LOCALIZATION[func_name]();
     }
 
-    ALL_POINTS_TYPE_HEADER() {
+    ALL_POINTS_TYPE_HEADER(type) {
         const func_name = this.f_(this.ALL_POINTS_TYPE_HEADER);
+        return LOCALIZATION[func_name](type);
+    }
+
+    NEAREST_POINT_HEADER() {
+        const func_name = this.f_(this.NEAREST_POINT_HEADER);
         return LOCALIZATION[func_name]();
+    }
+
+    NEAREST_POINT_TYPE_HEADER(type) {
+        const func_name = this.f_(this.NEAREST_POINT_TYPE_HEADER);
+        return LOCALIZATION[func_name](type);
+    }
+
+    NONE() {
+        const func_name = this.f_(this.NONE);
+        return LOCALIZATION[func_name]();
+    }
+
+    DISTANCE(arg) {
+        const func_name = this.f_(this.DISTANCE);
+        return LOCALIZATION[func_name](arg);
     }
 }
 
