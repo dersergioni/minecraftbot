@@ -2,6 +2,7 @@ const {startOptions, requestDestinationTypeOfLocation, createMapOptions} = requi
 const db = require('./db-models');
 const Modes = require('./session-modes');
 const {getChatId, getDbUser, getInputData} = require("./helpers");
+const STRINGS = require('./string-literals');
 
 class GoToLocations {
 
@@ -21,10 +22,10 @@ class GoToLocations {
             userData.entering = '';
             if (userData.locations.length !== 3) throw('');
             await this.bot.deleteMessage(chatId, userData.originReq.message_id);
-            userData.originReq = await this.bot.sendMessage(chatId, `Выбери куда:`, requestDestinationTypeOfLocation);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.WHERE_TO_GO(), requestDestinationTypeOfLocation());
             this.sessionModes.set(chatId, Modes.SelectDestinationType);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+            await this.bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT());
         }
     }
 
@@ -45,7 +46,7 @@ class GoToLocations {
             if (mode === Modes.SelectDestinationType) type = getInputData(msg);
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) {
-                return userData.originReq = await this.bot.sendMessage(chatId, 'Сначала необходимо создать карту', createMapOptions);
+                return userData.originReq = await this.bot.sendMessage(chatId, STRINGS.CREATE_MAP_FIRST(), createMapOptions());
             }
             let replyHeader = '';
             let replyBody = '';
@@ -83,12 +84,12 @@ class GoToLocations {
             }
             replyBody = replyHeader + '\n' + replyBody;
             await this.bot.deleteMessage(chatId, userData.originReq.message_id);
-            userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...startOptions});
+            userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...startOptions()});
             delete userData.locations;
             delete userData.initialCommand;
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
+            await this.bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
         }
     }
 

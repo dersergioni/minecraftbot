@@ -9,6 +9,7 @@ const {
 const db = require('./db-models');
 const Modes = require('./session-modes');
 const {getChatId, getInputData} = require("./helpers");
+const STRINGS = require('./string-literals');
 
 class EditLocations {
 
@@ -23,10 +24,10 @@ class EditLocations {
         let chatId = getChatId(msg);
         try {
             const userData = this.sessionData.get(chatId);
-            userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи номер точки описание которой надо изменить:', requestEditLocationDescriptionOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.SELECT_POINT_DESC(), requestEditLocationDescriptionOptions());
             this.sessionModes.set(chatId, Modes.RequestEditLocationDescription);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
+            await this.bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
         }
     }
 
@@ -34,10 +35,10 @@ class EditLocations {
         let chatId = getChatId(msg);
         try {
             const userData = this.sessionData.get(chatId);
-            userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи номер точки тип которой надо изменить:', requestEditLocationTypeOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.SELECT_POINT_TYPE(), requestEditLocationTypeOptions());
             this.sessionModes.set(chatId, Modes.RequestEditLocationType);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
+            await this.bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
         }
     }
 
@@ -49,10 +50,10 @@ class EditLocations {
             if (isNaN(number)) throw('');
             userData.indxToEdit = number;
             userData.entering = '';
-            userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи новое описание:', emptyOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.PROMPT_NEW_DESC(), emptyOptions());
             this.sessionModes.set(chatId, Modes.EditDescription);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+            await this.bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT());
         }
 
     }
@@ -65,10 +66,10 @@ class EditLocations {
             if (isNaN(number)) throw('');
             userData.indxToEdit = number;
             userData.entering = '';
-            userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи новый тип:', requestTypeOfLocationOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.PROMPT_NEW_TYPE(), requestTypeOfLocationOptions());
             this.sessionModes.set(chatId, Modes.EditType);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+            await this.bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT());
         }
 
     }
@@ -89,11 +90,11 @@ class EditLocations {
             let res = await db.Location.findOne({where: {id: indx}});
             res.desc = desc;
             await res.save();
-            userData.originReq = await this.bot.sendMessage(chatId, `Готово`, startOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.DONE(), startOptions());
             delete userData.indxToEdit;
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз', emptyOptions);
+            await this.bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT(), emptyOptions());
         }
     }
 
@@ -113,11 +114,11 @@ class EditLocations {
             let res = await db.Location.findOne({where: {id: indx}});
             res.type = type;
             await res.save();
-            userData.originReq = await this.bot.sendMessage(chatId, `Готово`, startOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.DONE(), startOptions());
             delete userData.indxToEdit;
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            userData.originReq = await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз', emptyOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT(), emptyOptions());
         }
     }
 
@@ -125,10 +126,10 @@ class EditLocations {
         let chatId = getChatId(msg);
         try {
             const userData = this.sessionData.get(chatId);
-            userData.originReq = await this.bot.sendMessage(chatId, 'Ок, введи номера точек которые надо удалить через пробел:', requestDeleteLocationsOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.SELECT_POINTS_DELETE(), requestDeleteLocationsOptions());
             this.sessionModes.set(chatId, Modes.RequestDeleteLocations);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+            await this.bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT());
         }
     }
 
@@ -149,10 +150,10 @@ class EditLocations {
                 let res = await db.Location.findOne({where: {id: indx}});
                 await res.destroy();
             }
-            userData.originReq = await this.bot.sendMessage(chatId, 'Готово', startOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.DONE(), startOptions());
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
+            await this.bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
         }
     }
 

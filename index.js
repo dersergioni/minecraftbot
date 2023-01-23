@@ -9,6 +9,8 @@ const EditLocations = require('./edit-locations');
 const GoToLocations = require('./go-to-locations');
 const EditAccountSettings = require('./edit-account-settings');
 const {getChatId, getDbUser} = require("./helpers");
+const STRINGS = require('./string-literals');
+STRINGS.setLang('EN');
 
 const token = process.env.TG_MINECRAFT_TOKEN || undefined;
 if (token === undefined) {
@@ -25,7 +27,6 @@ const displayLocations = new DisplayLocations(bot, sessionModes, sessionData);
 const editLocations = new EditLocations(bot, sessionModes, sessionData);
 const goToLocations = new GoToLocations(bot, sessionModes, sessionData);
 const editAccountSettings = new EditAccountSettings(bot, sessionModes, sessionData);
-
 try {
     sequelize.authenticate()
     sequelize.sync()
@@ -45,9 +46,9 @@ const startMenu = async function (msg) {
     const mapId = await db.Map.findOne({where: {userId: user}});
     await bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/741/656/7416567c-bc94-36e7-8d4b-ecb706761efc/11.webp');
     if (!mapId) {
-        userData.originReq = await bot.sendMessage(chatId, `Добрый вечер я диспетчер, ${msg.from.first_name}, для начала нужно создать карту, ок?`, createMapOptions);
+        userData.originReq = await bot.sendMessage(chatId, STRINGS.WELCOME_NONAUTHORIZED(msg.from.first_name), createMapOptions());
     } else {
-        userData.originReq = await bot.sendMessage(chatId, `Добрый вечер я диспетчер, играем, ${msg.from.first_name}?`, startOptions);
+        userData.originReq = await bot.sendMessage(chatId, STRINGS.WELCOME_AUTHORIZED(msg.from.first_name), startOptions());
     }
 
     sessionModes.set(chatId, Modes.Start);
@@ -55,20 +56,30 @@ const startMenu = async function (msg) {
 
 
 try {
-    bot.setMyCommands([{command: '/start', description: 'Начальное приветствие'}, {
-        command: '/add', description: 'Добавить точку на карте'
+    bot.setMyCommands([{command: '/start', description: STRINGS.WELCOME_TEXT()}, {
+        command: '/add', description: STRINGS.ADD_POINT()
     }, {
-        command: '/go', description: 'Показать ближайшую точку'
+        command: '/go', description: STRINGS.DISPLAY_NEAREST_POINT()
     }, {
-        command: '/all', description: 'Показать список всех точек'
+        command: '/all', description: STRINGS.DISPLAY_ALL_POINTS()
     }, {
-        command: '/allbytype', description: 'Показать список всех точек с сортировкой по типу'
-    }, {command: '/type', description: 'Показать список точек определенного типа'}, {
-        command: '/deletemap', description: 'Удалить карту и все локации на ней'
+        command: '/allbytype', description: STRINGS.DISPLAY_ALL_POINTS_BY_TYPE()
+    }, {command: '/type', description: STRINGS.DISPLAY_ONLY_POINTS_BY_TYPE()}, {
+        command: '/deletemap', description: STRINGS.DELETE_MAP()
     }]);
 } catch (e) {
     console.log('Cannot set Bot MyCommand:', e);
-    bot.sendMessage(chatId, 'Ошибка на сервере');
+    bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
+}
+
+const updateLanguage = async function (msg) {
+    const user = getDbUser(msg);
+    const dbRes = await db.Map.findOne({where: {userId: user}});
+    let lang = 'EN';
+    if (dbRes) {
+        lang = dbRes.dataValues.lang;
+    }
+    STRINGS.setLang(lang);
 }
 
 const messageCallback = async function (msg) {
@@ -80,6 +91,8 @@ const messageCallback = async function (msg) {
     if (sessionData.get(chatId) === undefined) sessionData.set(chatId, {});
     const userData = sessionData.get(chatId);
     const sessionMode = sessionModes.get(chatId);
+
+    await updateLanguage(msg);
 
     try {
         if (text === '/start') {
@@ -135,11 +148,11 @@ const messageCallback = async function (msg) {
         } else if (text === '/deletemap') {
             await editAccountSettings.requestDeleteMap(msg);
         } else {
-            userData.originReq = await bot.sendMessage(chatId, 'Нет такой команды', startOptions);
+            userData.originReq = await bot.sendMessage(chatId, STRINGS.COMMAND_NOT_FOUND(), startOptions());
         }
     } catch (e) {
         console.log('Exception:', e);
-        await bot.sendMessage(chatId, 'Ошибка на сервере');
+        await bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
     }
 }
 
@@ -152,10 +165,12 @@ const queryCallback = async function (msg) {
     const sessionMode = sessionModes.get(chatId);
     const userData = sessionData.get(chatId);
 
+    await updateLanguage(msg);
+
     try {
         await bot.answerCallbackQuery(msg.id);
         if (sessionMode !== undefined && msg.message.message_id !== userData.originReq?.message_id) {
-            await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+            await bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT());
             return;
         }
         if (data === '/start') {
@@ -180,7 +195,7 @@ const queryCallback = async function (msg) {
                 }
 
             } catch (e) {
-                await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+                await bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT());
             }
 
         } else if (sessionMode === Modes.EnterCoordinateTwo) {
@@ -203,7 +218,7 @@ const queryCallback = async function (msg) {
                 }
 
             } catch (e) {
-                await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+                await bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT());
             }
         } else if (sessionMode === Modes.EnterCoordinateThree) {
             try {
@@ -229,13 +244,13 @@ const queryCallback = async function (msg) {
                 }
 
             } catch (e) {
-                await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+                await bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT());
             }
         } else if (sessionMode === Modes.AddType) {
             try {
                 await addLocations.promptDesc(msg);
             } catch (e) {
-                await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+                await bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT());
             }
         } else if (sessionMode === Modes.AddDescription) {
             await addLocations.finalize(msg);
@@ -245,7 +260,7 @@ const queryCallback = async function (msg) {
             try {
                 await goToLocations.calculate(msg);
             } catch (e) {
-                await bot.sendMessage(chatId, 'Что-то не то ввел, попробуй еще раз');
+                await bot.sendMessage(chatId, STRINGS.INCORRECT_INPUT());
             }
         } else if (sessionMode === Modes.RequestEditLocationDescription) {
             await editLocations.promptNewDesc(msg);
@@ -275,25 +290,23 @@ const queryCallback = async function (msg) {
             await editAccountSettings.finalizeDeleteMap(msg);
         } else if (data === '/declinemapdeletion') {
             sessionModes.set(chatId, Modes.Start);
-            userData.originReq = await bot.sendMessage(chatId, 'Хорошо', startOptions);
+            userData.originReq = await bot.sendMessage(chatId, STRINGS.GOOD(), startOptions());
         } else if (data === '/editlocationdesc') {
             await editLocations.requestEditLocationDesc(msg);
         } else if (data === '/editlocationtype') {
             await editLocations.requestEditLocationType(msg);
         } else if (data === '/deletelocation') {
             await editLocations.requestDeleteLocations(msg);
-        } else if (data === '/throw') {
-            userData.originReq = await bot.sendDice(chatId);
         } else if (data === '/decide') {
             const actions = ['строить', 'рыбачить', 'добывать опыт', 'путешествовать', 'идти в Незер', 'учиться чему-то новому', 'добывать ресурсы'];
             const decision = Math.floor(Math.random() * actions.length);
             userData.originReq = await bot.sendMessage(chatId, `Давай-ка ${actions[decision]}!`);
         } else {
-            userData.originReq = await bot.sendMessage(chatId, 'Нет такой команды', startOptions);
+            userData.originReq = await bot.sendMessage(chatId, STRINGS.COMMAND_NOT_FOUND(), startOptions());
         }
     } catch (e) {
         console.log('Exception:', e);
-        await bot.sendMessage(chatId, 'Ошибка на сервере');
+        await bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
     }
 }
 

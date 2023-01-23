@@ -15,7 +15,8 @@ const Location = sequelize.define('Location', {
 
 const Map = sequelize.define('Map', {
     userId: {type: DataTypes.STRING, primaryKey: true, unique: true},
-    mapId: {type: DataTypes.INTEGER, allowNull: false}
+    mapId: {type: DataTypes.INTEGER, allowNull: false},
+    lang: {type: DataTypes.STRING, defaultValue: "EN"},
 })
 
 module.exports = {Location, Map};

@@ -6,6 +6,7 @@ const {
 const db = require('./db-models');
 const Modes = require('./session-modes');
 const {getChatId, getDbUser, getInputData} = require("./helpers");
+const STRINGS = require('./string-literals');
 
 class DisplayLocations {
 
@@ -19,10 +20,10 @@ class DisplayLocations {
         const chatId = getChatId(msg);
         try {
             const userData = this.sessionData.get(chatId);
-            userData.originReq = await this.bot.sendMessage(chatId, `Выбери тип:`, requestTypeOfLocationOptions);
+            userData.originReq = await this.bot.sendMessage(chatId, STRINGS.SELECT_TYPE(), requestTypeOfLocationOptions());
             this.sessionModes.set(chatId, Modes.SelectType);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
+            await this.bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
         }
     }
 
@@ -37,7 +38,7 @@ class DisplayLocations {
 
             const mapId = await db.Map.findOne({where: {userId: user}});
             if (!mapId) {
-                return await this.bot.sendMessage(chatId, 'Сначала необходимо создать карту', createMapOptions);
+                return await this.bot.sendMessage(chatId, STRINGS.CREATE_MAP_FIRST(), createMapOptions());
             }
             let replyHeader = '';
             let replyBody = '';
@@ -51,13 +52,13 @@ class DisplayLocations {
                     where: {mapId: mapId.dataValues.mapId},
                     order: orderBy
                 });
-                replyHeader += '<b>Все точки:</b>';
+                replyHeader += `<b>${STRINGS.ALL_POINTS_HEADER()}:</b>`;
             } else {
                 locations = await db.Location.findAll({
                     where: {type: type, mapId: mapId.dataValues.mapId},
                     order: orderBy
                 });
-                replyHeader += '<b>Все точки типа "' + type + '":</b>';
+                replyHeader += `<b>${STRINGS.ALL_POINTS_TYPE_HEADER()} "` + type + '":</b>';
             }
             userData.lastDisplayed = locations;
             for (let i = 0; i < locations.length; ++i) {
@@ -88,10 +89,10 @@ class DisplayLocations {
             replyBody = replyHeader + '\n' + replyBody;
             if (mode === Modes.SelectType)
                 await this.bot.deleteMessage(chatId, userData.originReq.message_id);
-            userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...displayResultMenuOptions});
+            userData.originReq = await this.bot.sendMessage(chatId, replyBody, {parse_mode: 'html', ...displayResultMenuOptions()});
             this.sessionModes.set(chatId, Modes.Start);
         } catch (e) {
-            await this.bot.sendMessage(chatId, 'Ошибка на сервере');
+            await this.bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
         }
     }
 
