@@ -52,13 +52,13 @@ class DisplayLocations {
                     where: {mapId: mapId.dataValues.mapId},
                     order: orderBy
                 });
-                replyHeader += `<b>${STRINGS.ALL_POINTS_HEADER()}:</b>`;
+                replyHeader += `<b>${STRINGS.ALL_POINTS_HEADER()}</b>`;
             } else {
                 locations = await db.Location.findAll({
                     where: {type: type, mapId: mapId.dataValues.mapId},
                     order: orderBy
                 });
-                replyHeader += `<b>${STRINGS.ALL_POINTS_TYPE_HEADER()} "` + type + '":</b>';
+                replyHeader += `<b>${STRINGS.ALL_POINTS_TYPE_HEADER(STRINGS.getLocalizedPointType(type))}</b>`;
             }
             userData.lastDisplayed = locations;
             for (let i = 0; i < locations.length; ++i) {
@@ -68,7 +68,7 @@ class DisplayLocations {
                 line += `${('      ' + locations[i].dataValues.center).slice(-6)}`;
                 line += `${('      ' + locations[i].dataValues.last).slice(-6)}]`;
                 if (type === undefined) {
-                    line += ` ${locations[i].dataValues.type}`;
+                    line += ` ${STRINGS.getLocalizedPointType(locations[i].dataValues.type)}`;
                     if (locations[i].dataValues.desc !== '') {
                         line += ` (${locations[i].dataValues.desc})`;
                     }
@@ -76,7 +76,7 @@ class DisplayLocations {
                     if (locations[i].dataValues.desc !== '') {
                         line += ` ${locations[i].dataValues.desc}`;
                     } else {
-                        line += ` ${locations[i].dataValues.type}`;
+                        line += ` ${STRINGS.getLocalizedPointType(locations[i].dataValues.type)}`;
                     }
                 }
                 line += '</pre>';
@@ -84,7 +84,7 @@ class DisplayLocations {
                 replyBody += line;
             }
             if (replyBody.length === 0) {
-                replyBody = '<b>Нету</b>'
+                replyBody = `<b>${STRINGS.NONE()}</b>`;
             }
             replyBody = replyHeader + '\n' + replyBody;
             if (mode === Modes.SelectType)

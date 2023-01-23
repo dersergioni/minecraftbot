@@ -37,6 +37,26 @@ const initUser = async function () {
     await db.Map.create({userId: 'user', mapId: 1});
 }
 
+const setBotCommands = async function () {
+    try {
+        await bot.setMyCommands([{command: '/start', description: STRINGS.WELCOME_TEXT()}, {
+            command: '/add', description: STRINGS.ADD_POINT()
+        }, {
+            command: '/go', description: STRINGS.DISPLAY_NEAREST_POINT()
+        }, {
+            command: '/all', description: STRINGS.DISPLAY_ALL_POINTS()
+        }, {
+            command: '/allbytype', description: STRINGS.DISPLAY_ALL_POINTS_BY_TYPE()
+        }, {command: '/type', description: STRINGS.DISPLAY_ONLY_POINTS_BY_TYPE()},
+            {command: '/seten', description: STRINGS.SET_EN()},
+            {command: '/setru', description: STRINGS.SET_RU()}, {
+                command: '/deletemap', description: STRINGS.DELETE_MAP()
+            }]);
+    } catch (e) {
+        console.log('Cannot set Bot MyCommand:', e);
+        await bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
+    }
+}
 
 const startMenu = async function (msg) {
     // await initUser();
@@ -44,32 +64,14 @@ const startMenu = async function (msg) {
     const user = getDbUser(msg);
     const userData = sessionData.get(chatId);
     const mapId = await db.Map.findOne({where: {userId: user}});
+    await setBotCommands();
     await bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/741/656/7416567c-bc94-36e7-8d4b-ecb706761efc/11.webp');
     if (!mapId) {
         userData.originReq = await bot.sendMessage(chatId, STRINGS.WELCOME_NONAUTHORIZED(msg.from.first_name), createMapOptions());
     } else {
         userData.originReq = await bot.sendMessage(chatId, STRINGS.WELCOME_AUTHORIZED(msg.from.first_name), startOptions());
     }
-
     sessionModes.set(chatId, Modes.Start);
-}
-
-
-try {
-    bot.setMyCommands([{command: '/start', description: STRINGS.WELCOME_TEXT()}, {
-        command: '/add', description: STRINGS.ADD_POINT()
-    }, {
-        command: '/go', description: STRINGS.DISPLAY_NEAREST_POINT()
-    }, {
-        command: '/all', description: STRINGS.DISPLAY_ALL_POINTS()
-    }, {
-        command: '/allbytype', description: STRINGS.DISPLAY_ALL_POINTS_BY_TYPE()
-    }, {command: '/type', description: STRINGS.DISPLAY_ONLY_POINTS_BY_TYPE()}, {
-        command: '/deletemap', description: STRINGS.DELETE_MAP()
-    }]);
-} catch (e) {
-    console.log('Cannot set Bot MyCommand:', e);
-    bot.sendMessage(chatId, STRINGS.SERVER_ERROR());
 }
 
 const updateLanguage = async function (msg) {
@@ -80,6 +82,15 @@ const updateLanguage = async function (msg) {
         lang = dbRes.dataValues.lang;
     }
     STRINGS.setLang(lang);
+}
+
+const setLanguage = async function (msg, lang) {
+    const user = getDbUser(msg);
+    const dbRes = await db.Map.findOne({where: {userId: user}});
+    if (!dbRes) return;
+
+    dbRes.set({lang: lang});
+    await dbRes.save();
 }
 
 const messageCallback = async function (msg) {
@@ -97,6 +108,28 @@ const messageCallback = async function (msg) {
     try {
         if (text === '/start') {
             await startMenu(msg);
+        } else if (text === '/add') {
+            await addLocations.promptCoordinateOne(msg);
+        } else if (text === '/all') {
+            await displayLocations.showLocations(msg);
+        } else if (text === '/allbytype') {
+            await displayLocations.showLocations(msg, true);
+        } else if (text === '/type') {
+            await displayLocations.promptType(msg);
+        } else if (text === '/go') {
+            await addLocations.promptCoordinateOne(msg);
+        } else if (text === '/createmap') {
+            await editAccountSettings.createMap(msg);
+        } else if (text === '/setru') {
+            await setLanguage(msg, 'RU');
+            await updateLanguage(msg);
+            await bot.sendMessage(chatId, STRINGS.DONE());
+        } else if (text === '/seten') {
+            await setLanguage(msg, 'EN');
+            await updateLanguage(msg);
+            await bot.sendMessage(chatId, STRINGS.DONE());
+        } else if (text === '/deletemap') {
+            await editAccountSettings.requestDeleteMap(msg);
         } else if (sessionMode === Modes.EnterCoordinateOne) {
             userData.entering = text;
             await bot.editMessageText(userData.demoMsg.text + ' ' + text, {
@@ -133,20 +166,6 @@ const messageCallback = async function (msg) {
             await editLocations.finalizeEditLocationType(msg);
         } else if (sessionMode === Modes.RequestDeleteLocations) {
             await editLocations.finalizeDeleteLocations(msg);
-        } else if (text === '/add') {
-            await addLocations.promptCoordinateOne(msg);
-        } else if (text === '/all') {
-            await displayLocations.showLocations(msg);
-        } else if (text === '/allbytype') {
-            await displayLocations.showLocations(msg, true);
-        } else if (text === '/type') {
-            await displayLocations.promptType(msg);
-        } else if (text === '/go') {
-            await addLocations.promptCoordinateOne(msg);
-        } else if (text === '/createmap') {
-            await editAccountSettings.createMap(msg);
-        } else if (text === '/deletemap') {
-            await editAccountSettings.requestDeleteMap(msg);
         } else {
             userData.originReq = await bot.sendMessage(chatId, STRINGS.COMMAND_NOT_FOUND(), startOptions());
         }

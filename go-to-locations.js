@@ -53,10 +53,10 @@ class GoToLocations {
             let locations;
             if (type === 'any') {
                 locations = await db.Location.findAll({where: {mapId: mapId.dataValues.mapId}});
-                replyHeader += '<b>Ближайшая точка:</b>';
+                replyHeader += `<b>${STRINGS.NEAREST_POINT_HEADER()}</b>`;
             } else {
                 locations = await db.Location.findAll({where: {type: type, mapId: mapId.dataValues.mapId}});
-                replyHeader += '<b>Ближайшая точка типа "' + type + '":</b>';
+                replyHeader += `<b>${STRINGS.NEAREST_POINT_TYPE_HEADER(STRINGS.getLocalizedPointType(type))}</b>`;
             }
 
             let currMinDistance = Number.MAX_VALUE;
@@ -69,7 +69,7 @@ class GoToLocations {
                 }
             }
             if (candidate === undefined) {
-                replyBody = '<b>Нету</b>'
+                replyBody = `<b>${STRINGS.NONE()}</b>`
             } else {
                 replyBody += `[${('      ' + candidate.first).slice(-6)}`;
                 replyBody += `${('      ' + candidate.center).slice(-6)}`;
@@ -77,10 +77,10 @@ class GoToLocations {
                 if (candidate.desc !== '') {
                     replyBody += ` - ${candidate.desc}`;
                 } else {
-                    replyBody += ` - ${candidate.type}`;
+                    replyBody += ` - ${STRINGS.getLocalizedPointType(candidate.type)}`;
                 }
                 replyBody += '\n';
-                replyBody += `Расстояние: ${Math.floor(currMinDistance)}`
+                replyBody += STRINGS.DISTANCE(Math.floor(currMinDistance));
             }
             replyBody = replyHeader + '\n' + replyBody;
             await this.bot.deleteMessage(chatId, userData.originReq.message_id);
