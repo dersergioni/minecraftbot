@@ -11,11 +11,11 @@
   "author": "@dersergioni",
   "license": "MIT",
   "dependencies": {
-    "node-telegram-bot-api": "^0.52.0",
-    "sequelize": "^6.6.2",
-    "sqlite3": "^5.1.4"
+    "node-telegram-bot-api": "^0.63.0",
+    "sequelize": "^6.37.5",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "nodemon": "^3.1.9"
   }
 }
